@@ -101,7 +101,9 @@ public class AutomatedTest {
     	
     	String expectedOutput = "LOG_ON SUCCESS USER_ID PTN24";
     	String output = in.readLine();
-    	assertTrue(expectedOutput.equals(output));    	
+    	assertTrue(expectedOutput.equals(output)); 
+    	
+    	client.close();
     	
     	/*
 		for (String line = in.readLine(); line != null; line = in.readLine()) {
@@ -111,7 +113,7 @@ public class AutomatedTest {
     }
     
     /**
-     * Test: User logs into the system and other users are already logged on (multiple users log on).
+     * Test: User logs into the system with a unique ID with multiple users already logged on.
      * Outcome: User successfully logs on .
      * @throws IOException
      */
@@ -129,7 +131,10 @@ public class AutomatedTest {
     	
     	String expectedOutput = "LOG_ON SUCCESS USER_ID DSSUN";
     	String output = in2.readLine();
-    	assertTrue(expectedOutput.equals(output)); 
+    	assertTrue(expectedOutput.equals(output));
+    	
+    	client1.close();
+    	client2.close();
     }
     
     /**
@@ -138,7 +143,7 @@ public class AutomatedTest {
      * @throws IOException
      */
     @Test
-    public void logOnUserIDTakenTest() throws IOException{
+    public void logOnUserIDTakenServerTest() throws IOException{
     	Socket client = new Socket(InetAddress.getByName("localhost"), 4444);
     	BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     	PrintWriter out = new PrintWriter(client.getOutputStream(), true);
@@ -151,7 +156,36 @@ public class AutomatedTest {
     	
     	String expectedOutput = "LOG_ON FAIL USERNAME PTN24 ALREADY EXISTS";
     	String output = in2.readLine();
-    	assertTrue(expectedOutput.equals(output));    
+    	assertTrue(expectedOutput.equals(output));
+    	
+    	client.close();
+    	client2.close();
+    }
+    
+    //SEND MESSAGE TESTING
+    /**
+     * Test: User sends a message to an existing conversation.
+     * Outcome: The message is sent successfully.
+     */
+    @Test
+    public void sendMessageBasicServerTest() throws UnknownHostException, IOException{
+    	Socket client = new Socket(InetAddress.getByName("localhost"), 4444);
+    	BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+    	PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+    	out.println("LOG_ON USER_ID PTN24");
+    	out.println("START_CHAT CONVERSATION_ID CHAT1");
+    	out.println("SEND_MESSAGE CONVERSATION_ID CHAT1 _TEXT_ Hello!");
+    	
+    	//Adjust this when the grammar changes.
+    	for(int i = 0; i < 6; i++){
+    		String line = in.readLine();
+    	}
+    	
+    	String expectedOutput = "SEND_MESSAGE SUCCESS CONVERSATION_ID CHAT1 TEXT Hello!";
+    	String output = in.readLine();
+    	assertTrue(expectedOutput.equals(output));
+    	
+    	client.close();
     }
 	
     /*

@@ -19,7 +19,7 @@ public class Lexer {
 			"(START_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+(\\sUSER_ID\\s\\p{Alnum}+)*)|" +
 			"(EXIT_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(ENTER_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
-			"(SEND_MESSAGE\\sCONVERSATION_ID\\s\\p{Alnum}+\\sTEXT\\s.*)|" +
+			"(SEND_MESSAGE\\sCONVERSATION_ID\\s\\p{Alnum}+\\s_TEXT_\\s.*)|" +
 			"(SEND_INVITE\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+(,\\s\\p{Alnum}+)*)";
 	
 	/**
@@ -81,7 +81,7 @@ public class Lexer {
 			else if(command.equals("SEND_MESSAGE")){
 				String request = tokens[1];
 				String conversationID = request.split(" ")[1];
-				String message = request.split("TEXT ", 2)[1];
+				String message = request.split("_TEXT_ ", 2)[1];
 				return new ClientRequest(ClientRequest.Type.SEND_MESSAGE, socket, null, 
 						conversationID, message, null);
 			}
