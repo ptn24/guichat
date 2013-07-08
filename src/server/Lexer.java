@@ -20,7 +20,7 @@ public class Lexer {
 			"(EXIT_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(ENTER_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(SEND_MESSAGE\\sCONVERSATION_ID\\s\\p{Alnum}+\\s_TEXT_\\s.*)|" +
-			"(SEND_INVITE\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+(,\\s\\p{Alnum}+)*)";
+			"(SEND_INVITE\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+)";
 	
 	/**
 	 * Create the lexer for the client's request.
