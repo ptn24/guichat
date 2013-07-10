@@ -42,7 +42,7 @@ public class Server{
 	}
     
     //TODO: create a public method for getting to handleRequest to use for testing.
-    //Want to receive input from a client socket and respond appropriately. 
+    //Want to receive input from a client socket and respond appropriately.
     //Want to check that the response is correct.
 	//Want to be able to close the serverSocket.
 	
@@ -100,7 +100,7 @@ public class Server{
 					try {
 						//Get the client request or block until a client request is put on the queue.
 						ClientRequest clientRequest = queue.take();
-						handleRequest(clientRequest);				
+						handleRequest(clientRequest);		
 					} 
 					
 					catch (InterruptedException e) {
@@ -177,7 +177,7 @@ public class Server{
 			break;
 			
 		case SEND_INVITE:
-			this.handleSendInvite(clientRequest.getConversationID(), clientRequest.getInvitees(), 
+			this.handleSendInvite(clientRequest.getConversationID(), clientRequest.getInvitee(), 
 					clientRequest.getSocket());
 			break;
 			
@@ -198,14 +198,14 @@ public class Server{
 		if (this.userIDToUser.containsKey(userID)){
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			//TODO: what is server-to-client message?
-			out.println("LOG_ON FAIL USERNAME " + userID + " ALREADY EXISTS");
+			out.println("LOG_ON_FAIL1 USER_ID " + userID);
 		}
 		
+		//TODO: delete this after testing.
 		//User already logged on.
 		else if (this.socketToUser.containsKey(socket)){
 			PrintWriter out = this.socketToUser.get(socket).getPrintWriter();
-			//TODO: what is server-to-client message?
-			out.println("LOG_ON FAIL ALREADY LOGGED ON");
+			out.println("LOG_ON_FAIL0");
 		}
 		
 		else{
@@ -218,18 +218,56 @@ public class Server{
 			 * To the client who logged on.
 			 */								
 			PrintWriter out = user.getPrintWriter();
-			//TODO: what is server-to-client message?
-			out.println("LOG_ON SUCCESS USER_ID " + userID);
-			
-			//Send the list of all available conversations.
-			String allConversations = this.getAllConversationsMessage();
-			out.println(allConversations);
+			out.println("LOG_ON USER_ID " + userID);
+			this.updateAllConversations(out);
 			
 			/*
-			 * To everyone.
+			 * To everyone else.
 			 */			        			
-			this.sendAllOnlineUsersMessage();
+			this.sendUserLogonMessage(user);
 		}	
+	}
+	
+	/**
+	 * When a client logs on, send all available conversations as well as the users in those
+	 * respective conversations to the client. 
+	 * @param out The client's output stream.
+	 */
+	private void updateAllConversations(PrintWriter out){
+		Iterator<Conversation> conversations = this.conversationIDToConversation.values().iterator();
+		
+		while(conversations.hasNext()){
+			Conversation conversation = conversations.next();
+			out.println("ADD_CONVERSATION CONVERSATION_ID " + conversation.getConversationID());
+			List<User> users = conversation.getListUsers();
+			
+			//Update the client to every user in the conversation.
+			for(int i = 0; i < users.size(); i++){
+				User user = users.get(i);
+				out.println("USER_ENTER_CHAT CONVERSATION_ID " + conversation.getConversationID() +
+						" USER_ID " + user.getUserID());
+			}
+		}
+	}
+	
+	/**
+	 * Update all clients when a client logs on.
+	 * @param user The client who logged on.
+	 */
+	private void sendUserLogonMessage(User user){
+		Iterator<User> users = this.userIDToUser.values().iterator();
+		
+		while(users.hasNext()){
+			User nextUser = users.next();
+			
+			//Do not send the message to the user who logged on.
+			if(nextUser.getUserID().equals(user.getUserID())){
+				continue;
+			}
+			
+			PrintWriter out = nextUser.getPrintWriter();
+			out.println("USER_LOG_ON USER_ID " + user.getUserID());
+		}
 	}
 	
 	/**
@@ -241,8 +279,7 @@ public class Server{
 		//If the client is not logged on.
 		if(!this.socketToUser.containsKey(socket)){
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
-			out.println("LOG_OFF FAIL ERROR1");
+			out.println("LOG_OFF_FAIL");
 		}	
 		
 		else{
@@ -262,8 +299,7 @@ public class Server{
 			 * To the client who logged off.
 			 */
 			PrintWriter out = user.getPrintWriter();
-			//TODO: what is server-to-client message?
-			out.println("LOG_OFF SUCCESS");
+			out.println("LOG_OFF");
 			
 			//Remove the user from the system.
 			this.userIDToUser.remove(user.getUserID());
@@ -273,10 +309,27 @@ public class Server{
 			/*
 			 * To everyone else.
 			 */
-			this.sendAllOnlineUsersMessage();
+			this.sendUserLogoffMessage(user);
+			
+			//START HERE =======================================================
 			this.sendAllConversationsMessage();
 		}			
 	}
+	
+	/**
+	 * Update all clients when a client logs off.
+	 * @param user The client who logged off.
+	 */
+	private void sendUserLogoffMessage(User user){
+		Iterator<User> users = this.userIDToUser.values().iterator();
+		
+		while(users.hasNext()){
+			User nextUser = users.next();
+			PrintWriter out = nextUser.getPrintWriter();
+			out.println("USER_LOG_OFF USER_ID " + user.getUserID());
+		}
+	}
+	
 	
 	/**
 	 * Handles a start chat request.
@@ -490,7 +543,7 @@ public class Server{
 	 * @param socket The client's socket.
 	 * @throws IOException
 	 */
-	private void handleSendInvite(String conversationID, String[] invitees, Socket socket) throws IOException{		
+	private void handleSendInvite(String conversationID, String invitee, Socket socket) throws IOException{		
 		//The client is not logged on.
 		if(!this.socketToUser.containsKey(socket)){
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -527,12 +580,10 @@ public class Server{
 					//Invite the users who are not in the conversation.
 					//TODO: if the invitee is already in the conversation, send a fail back to the
 					//inviter.
-					for(int i = 0; i < invitees.length; i++){
-						if(!conversation.contains(invitees[i])){
-							User userToSendInvite = this.userIDToUser.get(invitees[i]);
-							PrintWriter outToSendInvite = userToSendInvite.getPrintWriter();
-							outToSendInvite.println("SEND_INVITE CONVERSATION_ID " + conversationID);
-						}
+					if(!conversation.contains(invitee)){
+						User userToSendInvite = this.userIDToUser.get(invitee);
+						PrintWriter outToSendInvite = userToSendInvite.getPrintWriter();
+						outToSendInvite.println("SEND_INVITE CONVERSATION_ID " + conversationID);
 					}
 				}	
 			}		
@@ -566,40 +617,7 @@ public class Server{
 		return this.date.toString().split(" ")[3];
 	}
 	
-	/**
-	 * Create the "UPDATE_USERS" message to be sent to all clients. This message will
-	 * send a list of all userIDs who are currently online.
-	 * @return The message that will be sent to all clients.
-	 */
-	private String getAllOnlineUsersMessage(){
-		StringBuilder result = new StringBuilder();
-		result.append("UPDATE_USERS");
-		
-		//Append the userIDs to the message.
-		Iterator<String> iterator = this.userIDToUser.keySet().iterator();
-		while(iterator.hasNext()){
-			String nextUser = iterator.next();
-			result.append(" " + nextUser);
-		}
-		
-		return result.toString();
-	}
-	
-	/**
-	 * Send the "UPDATE_USERS" message to all clients.
-	 * @throws IOException
-	 */
-	private void sendAllOnlineUsersMessage() throws IOException{
-		String updatedUsers = this.getAllOnlineUsersMessage();
-		
-		Iterator<User> iteratorUsers = this.userIDToUser.values().iterator();
-		while(iteratorUsers.hasNext()){
-			User nextUser = iteratorUsers.next();
-			PrintWriter nextOut = nextUser.getPrintWriter();
-			nextOut.println(updatedUsers);
-		}
-	}
-	
+	//TODO: DELETE AFTER FIXES.
 	/**
 	 * Create the "UPDATE_CONVERSATIONS" message. This message will send a list of all conversations 
 	 * (with their respective IDs and list of users) that have been created. Requires regex to be 
@@ -625,6 +643,7 @@ public class Server{
 		return result.toString();
 	}
 	
+	//TODO: DELETE AFTER FIXES.
 	/**
 	 * Send the "UPDATE_CONVERSATIONS" message to all clients.
 	 * @throws IOException

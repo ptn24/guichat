@@ -32,7 +32,7 @@ public class ClientRequest {
 	private final String userID;
 	private final String conversationID;
 	private final String message;
-	private final String[] invitees;
+	private final String invitee;
 	
 	/**
 	 * The constructor for a ClientRequest.
@@ -41,16 +41,16 @@ public class ClientRequest {
 	 * @param userID The submitted userID from the client (can be null).
 	 * @param conversationID The submitted conversationID from the client (can be null).
 	 * @param message The submitted message from the client (can be null).
-	 * @param invitees The list of clients to invite submitted from the client (can be null).
+	 * @param invitee The username of the client to invite to a conversation (can be null).
 	 */
 	public ClientRequest(Type type, Socket socket, String userID, String conversationID,
-			String message, String[] invitees){
+			String message, String invitee){
 		this.type = type;
 		this.socket = socket;
 		this.userID = userID;
 		this.conversationID = conversationID;
 		this.message = message;
-		this.invitees = invitees;
+		this.invitee = invitee;
 	}
 	
 	public Type getType(){
@@ -73,8 +73,8 @@ public class ClientRequest {
 		return this.message;
 	}
 	
-	public String[] getInvitees(){
-		return this.invitees;
+	public String getInvitee(){
+		return this.invitee;
 	}
 
 }

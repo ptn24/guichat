@@ -48,8 +48,7 @@ public class Lexer {
 			String command = tokens[0];
 			
 			if(command.equals("LOG_ON")){
-				String request = tokens[1];
-				String userID = request.split(" ")[1];
+				String userID = tokens[1].split(" ")[1];
 				return new ClientRequest(ClientRequest.Type.LOG_ON, socket, userID, null, null, null);
 			}
 			
@@ -57,39 +56,37 @@ public class Lexer {
 				return new ClientRequest(ClientRequest.Type.LOG_OFF, socket, null, null, null, null);
 			}
 			
+			//TODO: May need to add more functionality.
 			else if(command.equals("START_CHAT")){
-				String request = tokens[1];
-				String conversationID = request.split(" ")[1];
+				String conversationID = tokens[1].split(" ")[1];
 				return new ClientRequest(ClientRequest.Type.START_CHAT, socket, null, conversationID, 
 						null, null);
 			}
 			
 			else if(command.equals("EXIT_CHAT")){
-				String request = tokens[1];
-				String conversationID = request.split(" ")[1];
+				String conversationID = tokens[1].split(" ")[1];
 				return new ClientRequest(ClientRequest.Type.EXIT_CHAT, socket, null, conversationID, 
 						null, null);
 			}
 			
 			else if(command.equals("ENTER_CHAT")){
-				String request = tokens[1];
-				String conversationID = request.split(" ")[1];
+				String conversationID = tokens[1].split(" ")[1];
 				return new ClientRequest(ClientRequest.Type.ENTER_CHAT, socket, null, conversationID, 
 						null, null);
 			}
 			
 			else if(command.equals("SEND_MESSAGE")){
-				String request = tokens[1];
-				String conversationID = request.split(" ")[1];
-				String message = request.split("_TEXT_ ", 2)[1];
+				String remainderTokens = tokens[1];
+				String conversationID = remainderTokens.split(" ")[1];
+				String message = remainderTokens.split("_TEXT_ ", 2)[1];
 				return new ClientRequest(ClientRequest.Type.SEND_MESSAGE, socket, null, 
 						conversationID, message, null);
 			}
 			
 			else{
-				String request = tokens[1];
-				String conversationID = request.split(" ")[1];
-				String[] invitees = request.split("USER_ID ", 2)[1].split(", ");
+				String remainderTokens = tokens[1];
+				String conversationID = remainderTokens.split(" ")[1];
+				String invitees = remainderTokens.split("USER_ID ", 2)[1];
 				return new ClientRequest(ClientRequest.Type.SEND_INVITE, socket, null, 
 						conversationID, null, invitees);
 			}
