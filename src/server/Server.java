@@ -40,11 +40,6 @@ public class Server{
 	    this.conversationIDToConversation = Collections.synchronizedMap(new HashMap<String, Conversation>());	    
 	    this.queue = new LinkedBlockingQueue<ClientRequest>();
 	}
-    
-    //TODO: create a public method for getting to handleRequest to use for testing.
-    //Want to receive input from a client socket and respond appropriately.
-    //Want to check that the response is correct.
-	//Want to be able to close the serverSocket.
 	
 	/**
 	 * Run the server, listening for client connections and handling them.
@@ -197,7 +192,6 @@ public class Server{
 		//UserID already in use.
 		if (this.userIDToUser.containsKey(userID)){
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
 			out.println("LOG_ON_FAIL1 USER_ID " + userID);
 		}
 		
@@ -219,13 +213,339 @@ public class Server{
 			 */								
 			PrintWriter out = user.getPrintWriter();
 			out.println("LOG_ON USER_ID " + userID);
+			this.updateAllUsers(user);
 			this.updateAllConversations(out);
 			
 			/*
 			 * To everyone else.
 			 */			        			
-			this.sendUserLogonMessage(user);
+			this.sendMessageToAllExceptOneClient(userID, "USER_LOG_ON USER_ID " + userID);
 		}	
+	}
+	
+	/**
+	 * Handles a log-off request.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleLogOff(Socket socket) throws IOException{
+		//If the client is not logged on.
+		if(!this.socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("LOG_OFF_FAIL");
+		}	
+		
+		else{
+			//Get the list of conversations in which this user is involved.
+			User user = this.socketToUser.get(socket);
+			List<Conversation> conversations = user.getConversations();
+			
+			String timeStamp = this.getTime();
+			for(int i = 0; i < conversations.size(); i++){
+				//Update mappings.
+				Conversation conversation = conversations.get(i);
+				conversation.removeUser(user, timeStamp);
+				user.removeConversation(conversation);
+				
+				this.sendMessageToAllExceptOneClient(user.getUserID(),
+						"USER_EXIT_CHAT CONVERSATION_ID " + conversation.getConversationID() + 
+						" USER_ID " + user.getUserID());
+			}
+			
+			/*
+			 * To the client who logged off.
+			 */
+			PrintWriter out = user.getPrintWriter();
+			out.println("LOG_OFF");
+			
+			/*
+			 * To everyone else.
+			 */
+			this.sendMessageToAllExceptOneClient(user.getUserID(), "USER_LOG_OFF USER_ID " + 
+					user.getUserID());
+			
+			//Remove the user from the system.
+			this.userIDToUser.remove(user.getUserID());
+			this.socketToUser.remove(socket);			
+			socket.close();
+		}			
+	}
+	
+	/**
+	 * Handles a start chat request.
+	 * @param conversationID The conversationID submitted by the client.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleStartChat(String conversationID, Socket socket) throws IOException{
+		//Client not logged on.
+		if(!socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("START_CHAT_FAIL0");
+		}
+		
+		else{
+			//Get the output stream.
+			User user = this.socketToUser.get(socket);
+			PrintWriter out = user.getPrintWriter();	
+						
+			//The conversationID already exists.
+			if(this.conversationIDToConversation.containsKey(conversationID)){
+				out.println("START_CHAT_FAIL1 CONVERSATION_ID " + conversationID);
+			}
+							
+			else{
+				/*
+				 * To the creator.
+				 */
+				out.println("START_CHAT CONVERSATION_ID " + conversationID);
+				
+				//Add the new conversation to the system and update the mappings.
+				String timeStamp = this.getTime();
+				Conversation conversation = new Conversation(conversationID, user, timeStamp);
+				this.conversationIDToConversation.put(conversationID, conversation);
+				user.addConversation(conversation);
+				
+				/*
+				 * To everyone else.
+				 */
+				this.sendMessageToAllExceptOneClient(user.getUserID(), 
+						"ADD_CONVERSATION CONVERSATION_ID " + conversationID);
+				this.sendMessageToAllExceptOneClient(user.getUserID(), 
+						"USER_ENTER_CHAT CONVERSATION_ID " + conversationID + " USER_ID " + 
+						user.getUserID());
+			}
+		}		
+	}
+	
+	/**
+	 * Handles an exit chat request.
+	 * @param conversationID The conversationID submitted by the client.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleExitChat(String conversationID, Socket socket) throws IOException{		
+		//Client is not logged on.
+		if(!this.socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("EXIT_CHAT_FAIL0");
+		}
+		
+		else{
+			//Get the output stream.
+			User user = this.socketToUser.get(socket);
+			PrintWriter out = user.getPrintWriter();
+						
+			//If the conversation does not exist.
+			if(!this.conversationIDToConversation.containsKey(conversationID)){
+				out.println("EXIT_CHAT_FAIL1 CONVERSATION_ID " + conversationID);
+			}
+			
+			else{
+				Conversation conversation = this.conversationIDToConversation.get(conversationID);
+				
+				//If the client is not in the conversation.
+				if(!user.getConversations().contains(conversation)){
+					out.println("EXIT_CHAT_FAIL2");
+				}
+				
+				else{
+					//Update mappings.
+					String timeStamp = this.getTime();
+					conversation.removeUser(user, timeStamp);
+					user.removeConversation(conversation);
+					
+					/*
+					 * To the client who is exiting a conversation.
+					 */
+					out.println("EXIT_CHAT CONVERSATION_ID " + conversationID);
+									
+					/*
+					 * To everyone else.
+					 */
+					this.sendMessageToAllExceptOneClient(user.getUserID(), 
+							"USER_EXIT_CHAT CONVERSATION_ID " + conversationID + " USER_ID " + 
+							user.getUserID());
+				}	
+			}			
+		}
+	}
+	
+	/**
+	 * Handles an enter chat request.
+	 * @param conversationID The conversationID submitted by the client.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleEnterChat(String conversationID, Socket socket) throws IOException{		
+		//The client is not logged on.
+		if(!this.socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("ENTER_CHAT_FAIL0");
+		}
+		
+		else{
+			User user = this.socketToUser.get(socket);
+			PrintWriter out = user.getPrintWriter();
+						
+			//If the conversation does not exist.
+			if(!this.conversationIDToConversation.containsKey(conversationID)){
+				out.println("ENTER_CHAT_FAIL1 CONVERSATION_ID " + conversationID);
+			}
+			
+			else{
+				Conversation conversation = this.conversationIDToConversation.get(conversationID);
+				
+				//If the client is already in the conversation.
+				if(user.getConversations().contains(conversation)){
+					out.println("ENTER_CHAT_FAIL2");
+				}			
+				
+				else{
+					/*
+					 * To the client who entered the conversation.
+					 */
+					out.println("ENTER_CHAT CONVERSATION_ID " + conversationID);
+					
+					//Add mappings.	
+					String timeStamp = this.getTime();	
+					conversation.addUser(user, timeStamp);
+					user.addConversation(conversation);
+					
+					/*
+					 * To everyone else.
+					 */
+					this.sendMessageToAllExceptOneClient(user.getUserID(), 
+							"USER_ENTER_CHAT CONVERSATION_ID " + conversationID + " USER_ID " + 
+							user.getUserID());
+				}
+			}						
+		}
+	}
+	
+	/**
+	 * Handles a send message request.
+	 * @param conversationID The conversationID submitted by the client.
+	 * @param message The message to be sent to the conversation.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleSendMessage(String conversationID, String message, Socket socket) throws IOException{
+		//Client is not logged on.
+		if(!this.socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("SEND_MESSAGE_FAIL0");
+		}
+		
+		else{
+			User user = this.socketToUser.get(socket);
+			PrintWriter out = user.getPrintWriter();
+			
+			//If the conversation does not exist.
+			if(!this.conversationIDToConversation.containsKey(conversationID)){
+				out.println("SEND_MESSAGE_FAIL1 CONVERSATION_ID " + conversationID);
+			}
+			
+			else{
+				Conversation conversation = this.conversationIDToConversation.get(conversationID);
+				
+				//If the client is not in the conversation.
+				if(!conversation.contains(user)){
+					out.println("SEND_MESSAGE_FAIL2 CONVERSATION_ID " + conversationID);
+				}
+				
+				else{
+					//Add the dialogue to the conversation.
+					String timeStamp = this.getTime();
+					conversation.addMessage(user.getUserID(), message, timeStamp);
+				}
+			}		
+		}
+	}
+	
+	/**
+	 * Handles a send invite request.
+	 * @param conversationID The conversationID submitted by the client.
+	 * @param invitees The users to be invited to the conversation 'conversationID'.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleSendInvite(String conversationID, String invitee, Socket socket) throws IOException{		
+		//The client is not logged on.
+		if(!this.socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("SEND_INVITE_FAIL0");
+		}
+		
+		else{
+			User user = this.socketToUser.get(socket);
+			PrintWriter out = user.getPrintWriter();
+			
+			//If the conversation does not exist.
+			if(!this.conversationIDToConversation.containsKey(conversationID)){
+				out.println("SEND_INVITE_FAIL1 CONVERSATION_ID " + conversationID);
+			}
+			
+			else{
+				Conversation conversation = this.conversationIDToConversation.get(conversationID);
+				
+				//The client is not in the conversation.
+				if(!conversation.contains(user)){
+					out.println("SEND_INVITE_FAIL2 CONVERSATION_ID " + conversationID);
+				}
+				
+				else{
+					if(!conversation.contains(invitee)){
+						User userToInvite = this.userIDToUser.get(invitee);
+						
+						if(userToInvite != null){
+							PrintWriter outToInvite = userToInvite.getPrintWriter();
+							outToInvite.println("RECEIVED_INVITE CONVERSATION_ID " + conversationID);
+						}
+						
+						else{
+							out.println("SEND_INVITE_FAIL3 USER_ID " + invitee);
+						}
+					}
+				}	
+			}		
+		}
+	}
+	
+	/**
+	 * Handles an invalid client request.
+	 * @param socket The client's socket.
+	 * @throws IOException
+	 */
+	private void handleInvalidInput(Socket socket) throws IOException{
+		//If the client is not logged on.
+		if(!this.socketToUser.containsKey(socket)){
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			out.println("INVALID_INPUT");
+		}
+		
+		else{
+			User user = this.socketToUser.get(socket);
+			PrintWriter out = user.getPrintWriter();
+			out.println("INVALID_INPUT");
+		}
+	}
+	
+	/**
+	 * When a client logs on, send all available users (except himself) to the client.
+	 * @param user The client who logged on.
+	 */
+	private void updateAllUsers(User user){
+		PrintWriter out = user.getPrintWriter();
+		Iterator<User> users = this.userIDToUser.values().iterator();
+		
+		while(users.hasNext()){
+			User nextUser = users.next();
+			
+			if(!nextUser.getUserID().equals(user.getUserID())){
+				out.println("USER_LOG_ON USER_ID " + nextUser.getUserID());
+			}
+		}
 	}
 	
 	/**
@@ -251,361 +571,21 @@ public class Server{
 	}
 	
 	/**
-	 * Update all clients when a client logs on.
-	 * @param user The client who logged on.
+	 * Update all clients when a client does something (log on, log off, etc.).
+	 * @param userID The username of the client who did something.
+	 * @param message The message to send to all clients except 'user'.
 	 */
-	private void sendUserLogonMessage(User user){
+	private void sendMessageToAllExceptOneClient(String userID, String message){
 		Iterator<User> users = this.userIDToUser.values().iterator();
 		
 		while(users.hasNext()){
 			User nextUser = users.next();
 			
-			//Do not send the message to the user who logged on.
-			if(nextUser.getUserID().equals(user.getUserID())){
-				continue;
+			//Do not send the message to the user who did something.
+			if(!nextUser.getUserID().equals(userID)){
+				PrintWriter out = nextUser.getPrintWriter();
+				out.println(message);
 			}
-			
-			PrintWriter out = nextUser.getPrintWriter();
-			out.println("USER_LOG_ON USER_ID " + user.getUserID());
-		}
-	}
-	
-	/**
-	 * Handles a log-off request.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleLogOff(Socket socket) throws IOException{
-		//If the client is not logged on.
-		if(!this.socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			out.println("LOG_OFF_FAIL");
-		}	
-		
-		else{
-			//Get the list of conversations in which this user is involved.
-			User user = this.socketToUser.get(socket);
-			List<Conversation> conversations = user.getConversations();
-			
-			//Update mappings.
-			String timeStamp = this.getTime();
-			for(int i = 0; i < conversations.size(); i++){
-				Conversation conversation = conversations.get(i);
-				conversation.removeUser(user, timeStamp);
-				user.removeConversation(conversation);
-			}
-			
-			/*
-			 * To the client who logged off.
-			 */
-			PrintWriter out = user.getPrintWriter();
-			out.println("LOG_OFF");
-			
-			//Remove the user from the system.
-			this.userIDToUser.remove(user.getUserID());
-			this.socketToUser.remove(socket);			
-			socket.close();
-			
-			/*
-			 * To everyone else.
-			 */
-			this.sendUserLogoffMessage(user);
-			
-			//START HERE =======================================================
-			this.sendAllConversationsMessage();
-		}			
-	}
-	
-	/**
-	 * Update all clients when a client logs off.
-	 * @param user The client who logged off.
-	 */
-	private void sendUserLogoffMessage(User user){
-		Iterator<User> users = this.userIDToUser.values().iterator();
-		
-		while(users.hasNext()){
-			User nextUser = users.next();
-			PrintWriter out = nextUser.getPrintWriter();
-			out.println("USER_LOG_OFF USER_ID " + user.getUserID());
-		}
-	}
-	
-	
-	/**
-	 * Handles a start chat request.
-	 * @param conversationID The conversationID submitted by the client.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleStartChat(String conversationID, Socket socket) throws IOException{
-		//Client not logged on.
-		if(!socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
-			out.println("START_CHAT FAIL " + Error.error1);
-		}
-		
-		else{
-			//Get the output stream.
-			User user = this.socketToUser.get(socket);
-			PrintWriter out = user.getPrintWriter();	
-						
-			//The conversationID already exists.
-			if(this.conversationIDToConversation.containsKey(conversationID)){
-				//TODO: what is server-to-client message?
-				out.println("START_CHAT FAIL " + conversationID + " ALREADY EXISTS");
-			}
-							
-			else{
-				/*
-				 * To the creator.
-				 */
-				//TODO: what is server-to-client message?
-				out.println("START_CHAT SUCCESS CONVERSATION_ID " + conversationID);
-				
-				//Add the new conversation to the system and update the mappings.
-				String timeStamp = this.getTime();
-				Conversation conversation = new Conversation(conversationID, user, timeStamp);
-				this.conversationIDToConversation.put(conversationID, conversation);
-				user.addConversation(conversation);
-				
-				/*
-				 * To everyone.
-				 */
-				this.sendAllConversationsMessage();
-			}
-		}		
-	}
-	
-	/**
-	 * Handles an exit chat request.
-	 * @param conversationID The conversationID submitted by the client.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleExitChat(String conversationID, Socket socket) throws IOException{		
-		//Client is not logged on.
-		if(!this.socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
-			out.println("EXIT_CHAT FAIL " + Error.error1);
-		}
-		
-		else{
-			//Get the output stream.
-			User user = this.socketToUser.get(socket);
-			PrintWriter out = user.getPrintWriter();
-						
-			//If the conversation does not exist.
-			if(!this.conversationIDToConversation.containsKey(conversationID)){
-				//TODO: what is server-to-client message?
-				out.println("EXIT_CHAT FAIL CONVERSATION_ID " + conversationID + " DOES NOT EXIST");
-			}
-			
-			else{
-				Conversation conversation = this.conversationIDToConversation.get(conversationID);
-				
-				//The client is not in the conversation.
-				if(!user.getConversations().contains(conversation)){
-					//TODO: what is server-to-client message?
-					out.println("EXIT_CHAT FAIL " + Error.error4);
-				}
-				
-				else{
-					//Update mappings.
-					String timeStamp = this.getTime();
-					conversation.removeUser(user, timeStamp);
-					user.removeConversation(conversation);
-					
-					/*
-					 * To the client who is exiting a conversation.
-					 */
-					//TODO: what is server-to-client message?
-					out.println("EXIT_CHAT SUCCESS CONVERSATION_ID " + conversationID);
-									
-					/*
-					 * To everyone.
-					 */
-					this.sendAllConversationsMessage();	
-				}	
-			}			
-		}
-	}
-	
-	/**
-	 * Handles an enter chat request.
-	 * @param conversationID The conversationID submitted by the client.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleEnterChat(String conversationID, Socket socket) throws IOException{		
-		//The client is not logged on.
-		if(!this.socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
-			out.println("ENTER_CHAT FAIL " + Error.error1);
-		}
-		
-		else{
-			User user = this.socketToUser.get(socket);
-			PrintWriter out = user.getPrintWriter();
-						
-			//If the conversation does not exist.
-			if(!this.conversationIDToConversation.containsKey(conversationID)){
-				//TODO: what is server-to-client message?
-				out.println("ENTER_CHAT FAIL CONVERSATION_ID " + conversationID + " DOES NOT EXIST");
-			}
-			
-			else{
-				Conversation conversation = this.conversationIDToConversation.get(conversationID);
-				
-				//If the client is already in the conversation.
-				if(user.getConversations().contains(conversation)){
-					//TODO: what is server-to-client message?
-					out.println("ENTER_CHAT FAIL " + Error.error5);
-				}			
-				
-				else{
-					/*
-					 * To the client who entered the conversation.
-					 */
-					//TODO: what is server-to-client message?
-					out.println("ENTER_CHAT SUCCESS CONVERSATION_ID " + conversationID);
-					
-					//Add mappings.	
-					String timeStamp = this.getTime();	
-					conversation.addUser(user, timeStamp);
-					user.addConversation(conversation);
-					
-					/*
-					 * To everyone.
-					 */
-					this.sendAllConversationsMessage();
-				}
-			}						
-		}
-	}
-	
-	/**
-	 * Handles a send message request.
-	 * @param conversationID The conversationID submitted by the client.
-	 * @param message The message to be sent to the conversation.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleSendMessage(String conversationID, String message, Socket socket) throws IOException{
-		//Client is not logged on.
-		if(!this.socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
-			out.println("SEND_MESSAGE FAIL " + Error.error1);
-		}
-		
-		else{
-			User user = this.socketToUser.get(socket);
-			PrintWriter out = user.getPrintWriter();
-			
-			//If the conversation does not exist.
-			if(!this.conversationIDToConversation.containsKey(conversationID)){
-				//TODO: what is server-to-client message?
-				out.println("SEND_MESSAGE FAIL CONVERSATION_ID " + conversationID + " DOES NOT EXIST");
-			}
-			
-			else{
-				Conversation conversation = this.conversationIDToConversation.get(conversationID);
-				
-				//The client is not in the conversation.
-				if(!conversation.contains(user)){
-					//TODO: what is server-to-client message?
-					out.println("SEND_MESSAGE FAIL " + Error.error4);
-				}
-				
-				else{					
-					/*
-					 * To the client who sent the message.
-					 */
-					//TODO: what is server-to-client message?
-					out.println("SEND_MESSAGE SUCCESS CONVERSATION_ID " + conversationID + " TEXT " + 
-							message);
-
-					//Add the dialogue to the conversation.
-					String timeStamp = this.getTime();
-					conversation.addMessage(user.getUserID(), message, timeStamp);
-				}
-			}		
-		}
-	}
-	
-	/**
-	 * Handles a send invite request.
-	 * @param conversationID The conversationID submitted by the client.
-	 * @param invitees The users to be invited to the conversation 'conversationID'.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleSendInvite(String conversationID, String invitee, Socket socket) throws IOException{		
-		//The client is not logged on.
-		if(!this.socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			//TODO: what is server-to-client message?
-			out.println("SEND_INVITE FAIL " + Error.error1);
-		}
-		
-		else{
-			User user = this.socketToUser.get(socket);
-			PrintWriter out = user.getPrintWriter();
-			
-			//If the conversation does not exist.
-			if(!this.conversationIDToConversation.containsKey(conversationID)){
-				//TODO: what is server-to-client message?
-				out.println("SEND_INVITE FAIL CONVERSATION_ID " + conversationID + " DOES NOT EXIST");
-			}
-			
-			else{
-				Conversation conversation = this.conversationIDToConversation.get(conversationID);
-				
-				//The client is not in the conversation.
-				if(!conversation.contains(user)){
-					//TODO: what is server-to-client message?
-					out.println("SEND_INVITE FAIL " + Error.error4);
-				}
-				
-				else{
-					/*
-					 * To the client who sent out the invites.
-					 */
-					//TODO: what is server-to-client message?
-					out.println("SEND_INVITE SUCCESS");
-					
-					//Invite the users who are not in the conversation.
-					//TODO: if the invitee is already in the conversation, send a fail back to the
-					//inviter.
-					if(!conversation.contains(invitee)){
-						User userToSendInvite = this.userIDToUser.get(invitee);
-						PrintWriter outToSendInvite = userToSendInvite.getPrintWriter();
-						outToSendInvite.println("SEND_INVITE CONVERSATION_ID " + conversationID);
-					}
-				}	
-			}		
-		}
-	}
-	
-	/**
-	 * Handles an invalid client request.
-	 * @param socket The client's socket.
-	 * @throws IOException
-	 */
-	private void handleInvalidInput(Socket socket) throws IOException{
-		//The client is not logged on.
-		if(!this.socketToUser.containsKey(socket)){
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			out.println("INVALID INPUT");
-		}
-		
-		else{
-			User user = this.socketToUser.get(socket);
-			PrintWriter out = user.getPrintWriter();
-			out.println("INVALID INPUT");
 		}
 	}
 	
@@ -615,48 +595,6 @@ public class Server{
 	private String getTime(){
 		this.date = new Date();
 		return this.date.toString().split(" ")[3];
-	}
-	
-	//TODO: DELETE AFTER FIXES.
-	/**
-	 * Create the "UPDATE_CONVERSATIONS" message. This message will send a list of all conversations 
-	 * (with their respective IDs and list of users) that have been created. Requires regex to be 
-	 * "UPDATE_CONVERSATIONS[ CONVERSATION_ID conversationID USER_ID [userID]*]*"
-	 * @return The message that will be sent to the clients.
-	 */
-	private String getAllConversationsMessage(){
-		StringBuilder result = new StringBuilder();
-		result.append("UPDATE_CONVERSATIONS");
-		
-		Iterator<Conversation> iterator = this.conversationIDToConversation.values().iterator();
-		while(iterator.hasNext()){
-			Conversation nextConversation = iterator.next();
-			result.append(" CONVERSATION_ID " + nextConversation.getConversationID() + " USER_ID");
-			
-			List<User> users = nextConversation.getListUsers();
-			for(User user : users){
-				String userID = user.getUserID();
-				result.append(" " + userID);
-			}
-		}
-		
-		return result.toString();
-	}
-	
-	//TODO: DELETE AFTER FIXES.
-	/**
-	 * Send the "UPDATE_CONVERSATIONS" message to all clients.
-	 * @throws IOException
-	 */
-	private void sendAllConversationsMessage() throws IOException{
-		String allConversations = this.getAllConversationsMessage();
-		
-		Iterator<User> iterator = this.userIDToUser.values().iterator();
-		while(iterator.hasNext()){
-			User nextUser = iterator.next();
-			PrintWriter nextOut = nextUser.getPrintWriter();
-			nextOut.println(allConversations);
-		}
 	}
 	
     /**

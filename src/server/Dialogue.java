@@ -26,7 +26,7 @@ public class Dialogue {
 	 * Return the string representation of the dialogue.
 	 */
 	public String toString(){		
-		String result = ("USER_ID " + this.userID + " TIME " + this.timeStamp + " TEXT " + 
+		String result = ("USER_ID " + this.userID + " _TIME_ " + this.timeStamp + " _TEXT_ " + 
 				this.text);
 		
 		return result;
