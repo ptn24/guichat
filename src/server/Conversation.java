@@ -89,20 +89,15 @@ public class Conversation {
 	
 	/**
 	 * Add a user to the conversation and update the conversation history.
-	 * @param userID The unique identifier for the user to be added.
+	 * @param user The user to be added.
+	 * Requires that this user is not currently in the conversation.
 	 */
 	public void addUser(User user, String timeStamp){
-		if(!this.users.contains(user)){
-			this.users.add(user);
-			this.sendHistoryToUser(user.getPrintWriter());		
-			
-			String text = user.getUserID() + " has entered the room.";
-			this.addMessage("MASTER", text, timeStamp);
-		}
+		this.users.add(user);
+		this.sendHistoryToUser(user.getPrintWriter());		
 		
-		else{
-			throw new IllegalArgumentException("This user is already in the conversation.");
-		}
+		String text = user.getUserID() + " has entered the room.";
+		this.addMessage("MASTER", text, timeStamp);
 	}
 	
 	/**
@@ -119,24 +114,18 @@ public class Conversation {
 	
 	/**
 	 * Remove the user from the conversation and update the conversation history.
-	 * @param userID The unique identifier for the user to be removed.
+	 * @param user The user to be removed. Requires that this user is in the conversation.
 	 */
 	public void removeUser(User user, String timeStamp){
-		if(!this.users.contains(user)){
-			throw new IllegalArgumentException("This user is not in the conversation.");
-		}
+		this.users.remove(user);
 		
-		else{
-			this.users.remove(user);
-			
-			String text = user.getUserID() + " has left the room.";
-			this.addMessage("MASTER", text, timeStamp);
-		}
+		String text = user.getUserID() + " has left the room.";
+		this.addMessage("MASTER", text, timeStamp);
 	}
 	
 	/**
 	 * 
-	 * @param userID The unique identifier for the user.
+	 * @param user The user object.
 	 * @return Whether or not the user is in the conversation.
 	 */
 	public boolean contains(User user){

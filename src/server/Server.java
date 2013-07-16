@@ -240,9 +240,9 @@ public class Server{
 			User user = this.socketToUser.get(socket);
 			List<Conversation> conversations = user.getConversations();
 			
+			//Update mappings.
 			String timeStamp = this.getTime();
 			for(int i = 0; i < conversations.size(); i++){
-				//Update mappings.
 				Conversation conversation = conversations.get(i);
 				conversation.removeUser(user, timeStamp);
 				user.removeConversation(conversation);

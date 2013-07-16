@@ -1,7 +1,9 @@
 package server;
 
 /**
- * This class represents the datatype for a message within a conversation.
+ * This class represents the datatype for a message within a conversation. Each Dialogue
+ * contains information about who sent the message, the message text, and the time the message
+ * was sent.
  * @author Peter
  *
  */

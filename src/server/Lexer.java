@@ -56,7 +56,6 @@ public class Lexer {
 				return new ClientRequest(ClientRequest.Type.LOG_OFF, socket, null, null, null, null);
 			}
 			
-			//TODO: May need to add more functionality.
 			else if(command.equals("START_CHAT")){
 				String conversationID = tokens[1].split(" ")[1];
 				return new ClientRequest(ClientRequest.Type.START_CHAT, socket, null, conversationID, 
