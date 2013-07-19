@@ -242,23 +242,11 @@ public class Server{
 			User user = this.socketToUser.get(socket);
 			List<Conversation> conversations = user.getConversations();
 			
-			//Update mappings.
 			String timeStamp = this.getTime();
+			
 			for(int i = 0; i < conversations.size(); i++){
 				Conversation conversation = conversations.get(i);
-				conversation.removeUser(user, timeStamp);
-				conversation.addMessage("MASTER", 
-						user.getUserID() + " has left the room.", timeStamp);
-				user.removeConversation(conversation);
-				
-				this.sendMessageToAllUsersInConversation(conversation,
-						"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
-						" " + conversation.getLastMessage().toString());
-				
-				
-				this.sendMessageToAllExceptOneClient(user.getUserID(),
-						"USER_EXIT_CHAT CONVERSATION_ID " + conversation.getConversationID() + 
-						" USER_ID " + user.getUserID());
+				this.removeUserFromConversation(user, conversation, timeStamp);
 			}
 			
 			/*
@@ -313,9 +301,10 @@ public class Server{
 				String timeStamp = this.getTime();
 				Conversation conversation = new Conversation(conversationID, user, timeStamp);
 				this.conversationIDToConversation.put(conversationID, conversation);
+				user.addConversation(conversation);
+				
 				conversation.addMessage("MASTER", 
 						user.getUserID() + " has entered the room.", timeStamp);
-				user.addConversation(conversation);
 				
 				this.sendMessageToAllUsersInConversation(conversation, 
 						"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
@@ -347,7 +336,6 @@ public class Server{
 		}
 		
 		else{
-			//Get the output stream.
 			User user = this.socketToUser.get(socket);
 			PrintWriter out = user.getPrintWriter();
 						
@@ -365,28 +353,13 @@ public class Server{
 				}
 				
 				else{
-					//Update mappings.
 					String timeStamp = this.getTime();
-					conversation.removeUser(user, timeStamp);
-					conversation.addMessage("MASTER", 
-							user.getUserID() + " has left the room.", timeStamp);
-					user.removeConversation(conversation);
-					
-					this.sendMessageToAllUsersInConversation(conversation, 
-							"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
-							" " + conversation.getLastMessage().toString());
+					this.removeUserFromConversation(user, conversation, timeStamp);
 					
 					/*
 					 * To the client who is exiting a conversation.
 					 */
 					out.println("EXIT_CHAT CONVERSATION_ID " + conversationID);
-									
-					/*
-					 * To everyone else.
-					 */
-					this.sendMessageToAllExceptOneClient(user.getUserID(), 
-							"USER_EXIT_CHAT CONVERSATION_ID " + conversationID + " USER_ID " + 
-							user.getUserID());
 				}	
 			}			
 		}
@@ -432,9 +405,10 @@ public class Server{
 					String timeStamp = this.getTime();	
 					conversation.addUser(user, timeStamp);
 					conversation.sendHistoryToUser(out);
+					user.addConversation(conversation);
+					
 					conversation.addMessage("MASTER", 
 							user.getUserID() + " has entered the room.", timeStamp);
-					user.addConversation(conversation);
 					
 					this.sendMessageToAllUsersInConversation(conversation,
 							"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
@@ -632,6 +606,23 @@ public class Server{
 			PrintWriter out = user.getPrintWriter();
 			out.println(message);
 		}
+	}
+	
+	/**
+	 * Remove a client from a conversation, updating the conversation history and system mappings.
+	 * @param user The client to be removed from the conversation.
+	 * @param conversation The conversation from which the client will be removed.
+	 * @param timeStamp The time at which the client is removed from the conversation.
+	 */
+	private void removeUserFromConversation(User user, Conversation conversation, String timeStamp){
+		conversation.removeUser(user, timeStamp);
+		user.removeConversation(conversation);
+		conversation.addMessage("MASTER", user.getUserID() + " has left the room.", timeStamp);
+		this.sendMessageToAllUsersInConversation(conversation, "SEND_MESSAGE CONVERSATION_ID " + 
+				conversation.getConversationID() + " " + conversation.getLastMessage().toString());
+		
+		this.sendMessageToAllExceptOneClient(user.getUserID(), "USER_EXIT_CHAT CONVERSATION_ID " + 
+				conversation.getConversationID() + " USER_ID " + user.getUserID());
 	}
 	
 	/**
