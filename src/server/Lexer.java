@@ -2,6 +2,7 @@ package server;
 
 import java.io.IOException;
 import java.net.Socket;
+import datatype.*;
 
 /**
  * This lexer takes a client request from the input stream on the server and creates the appropriate 

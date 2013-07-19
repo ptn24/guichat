@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import datatype.*;
 
 
 /**
@@ -54,7 +55,9 @@ public class Server{
 		
 		while(true) {
 			//This blocks until someone connects.
-			final Socket socket = this.serverSocket.accept();	
+			final Socket socket = this.serverSocket.accept();
+			
+			System.out.println("New connection...");
 			
 			//Create a new thread for each client.
 			Thread thread = new Thread(new Runnable() {
@@ -86,7 +89,7 @@ public class Server{
 	}
 	
 	/**
-	 * A separate thread that processes the client requests on the 'queue'.
+	 * A separate thread that processes the client requests and takes them off the 'queue'.
 	 */
 	private void processRequests(){
 		Thread processingThread = new Thread(new Runnable(){
@@ -123,7 +126,6 @@ public class Server{
         
         try{
         	for (String line = in.readLine(); line != null; line = in.readLine()) {
-        		//Create the ClientRequest and add it to the queue.
         		Lexer lexer = new Lexer(line, socket);
         		ClientRequest clientRequest = lexer.lex();
         		this.queue.put(clientRequest);
@@ -245,7 +247,14 @@ public class Server{
 			for(int i = 0; i < conversations.size(); i++){
 				Conversation conversation = conversations.get(i);
 				conversation.removeUser(user, timeStamp);
+				conversation.addMessage("MASTER", 
+						user.getUserID() + " has left the room.", timeStamp);
 				user.removeConversation(conversation);
+				
+				this.sendMessageToAllUsersInConversation(conversation,
+						"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
+						" " + conversation.getLastMessage().toString());
+				
 				
 				this.sendMessageToAllExceptOneClient(user.getUserID(),
 						"USER_EXIT_CHAT CONVERSATION_ID " + conversation.getConversationID() + 
@@ -304,7 +313,13 @@ public class Server{
 				String timeStamp = this.getTime();
 				Conversation conversation = new Conversation(conversationID, user, timeStamp);
 				this.conversationIDToConversation.put(conversationID, conversation);
+				conversation.addMessage("MASTER", 
+						user.getUserID() + " has entered the room.", timeStamp);
 				user.addConversation(conversation);
+				
+				this.sendMessageToAllUsersInConversation(conversation, 
+						"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
+						" " + conversation.getLastMessage().toString());
 				
 				/*
 				 * To everyone else.
@@ -353,7 +368,13 @@ public class Server{
 					//Update mappings.
 					String timeStamp = this.getTime();
 					conversation.removeUser(user, timeStamp);
+					conversation.addMessage("MASTER", 
+							user.getUserID() + " has left the room.", timeStamp);
 					user.removeConversation(conversation);
+					
+					this.sendMessageToAllUsersInConversation(conversation, 
+							"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
+							" " + conversation.getLastMessage().toString());
 					
 					/*
 					 * To the client who is exiting a conversation.
@@ -410,7 +431,14 @@ public class Server{
 					//Add mappings.	
 					String timeStamp = this.getTime();	
 					conversation.addUser(user, timeStamp);
+					conversation.sendHistoryToUser(out);
+					conversation.addMessage("MASTER", 
+							user.getUserID() + " has entered the room.", timeStamp);
 					user.addConversation(conversation);
+					
+					this.sendMessageToAllUsersInConversation(conversation,
+							"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
+							" " + conversation.getLastMessage().toString());
 					
 					/*
 					 * To everyone else.
@@ -458,6 +486,10 @@ public class Server{
 					//Add the dialogue to the conversation.
 					String timeStamp = this.getTime();
 					conversation.addMessage(user.getUserID(), message, timeStamp);
+					
+					this.sendMessageToAllUsersInConversation(conversation,
+							"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
+							" " + conversation.getLastMessage().toString());
 				}
 			}		
 		}
@@ -586,6 +618,19 @@ public class Server{
 				PrintWriter out = nextUser.getPrintWriter();
 				out.println(message);
 			}
+		}
+	}
+	
+	/**
+	 * Send a message to all users in a conversation.
+	 * @param conversation The conversation in which the message is to be sent.
+	 * @param message The message to be sent.
+	 */
+	private void sendMessageToAllUsersInConversation(Conversation conversation, String message){
+		List<User> users = conversation.getListUsers();
+		for(User user : users){
+			PrintWriter out = user.getPrintWriter();
+			out.println(message);
 		}
 	}
 	

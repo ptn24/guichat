@@ -93,7 +93,7 @@ public class AutomatedTest {
 	 * Outcome: The user receives confirmation he has logged in successfully.
 	 */
     @Test 
-    public void logOnSingleUserServerTest() throws IOException{    	
+    public void logOnSingleUserServerTest() throws IOException{
     	Socket client = new Socket(InetAddress.getByName("localhost"), 4444);
     	BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     	PrintWriter out = new PrintWriter(client.getOutputStream(), true);
