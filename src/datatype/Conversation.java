@@ -32,7 +32,7 @@ public class Conversation {
 		this.users = Collections.synchronizedSet(new HashSet<User>());
 		this.history = new ArrayList<Dialogue>();
 		
-		this.addUser(user, timeStamp);
+		//this.addUser(user, timeStamp);
 	}
 	
 	/**

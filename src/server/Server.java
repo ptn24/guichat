@@ -301,23 +301,14 @@ public class Server{
 				String timeStamp = this.getTime();
 				Conversation conversation = new Conversation(conversationID, user, timeStamp);
 				this.conversationIDToConversation.put(conversationID, conversation);
-				user.addConversation(conversation);
+				this.addUserToConversation(user, conversation, timeStamp);
 				
-				conversation.addMessage("MASTER", 
-						user.getUserID() + " has entered the room.", timeStamp);
-				
-				this.sendMessageToAllUsersInConversation(conversation, 
-						"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
-						" " + conversation.getLastMessage().toString());
 				
 				/*
 				 * To everyone else.
 				 */
 				this.sendMessageToAllExceptOneClient(user.getUserID(), 
 						"ADD_CONVERSATION CONVERSATION_ID " + conversationID);
-				this.sendMessageToAllExceptOneClient(user.getUserID(), 
-						"USER_ENTER_CHAT CONVERSATION_ID " + conversationID + " USER_ID " + 
-						user.getUserID());
 			}
 		}		
 	}
@@ -353,13 +344,9 @@ public class Server{
 				}
 				
 				else{
+					out.println("EXIT_CHAT CONVERSATION_ID " + conversationID);
 					String timeStamp = this.getTime();
 					this.removeUserFromConversation(user, conversation, timeStamp);
-					
-					/*
-					 * To the client who is exiting a conversation.
-					 */
-					out.println("EXIT_CHAT CONVERSATION_ID " + conversationID);
 				}	
 			}			
 		}
@@ -396,30 +383,10 @@ public class Server{
 				}			
 				
 				else{
-					/*
-					 * To the client who entered the conversation.
-					 */
 					out.println("ENTER_CHAT CONVERSATION_ID " + conversationID);
-					
-					//Add mappings.	
-					String timeStamp = this.getTime();	
-					conversation.addUser(user, timeStamp);
 					conversation.sendHistoryToUser(out);
-					user.addConversation(conversation);
-					
-					conversation.addMessage("MASTER", 
-							user.getUserID() + " has entered the room.", timeStamp);
-					
-					this.sendMessageToAllUsersInConversation(conversation,
-							"SEND_MESSAGE CONVERSATION_ID " + conversation.getConversationID() +
-							" " + conversation.getLastMessage().toString());
-					
-					/*
-					 * To everyone else.
-					 */
-					this.sendMessageToAllExceptOneClient(user.getUserID(), 
-							"USER_ENTER_CHAT CONVERSATION_ID " + conversationID + " USER_ID " + 
-							user.getUserID());
+					String timeStamp = this.getTime();
+					this.addUserToConversation(user, conversation, timeStamp);
 				}
 			}						
 		}
@@ -606,6 +573,22 @@ public class Server{
 			PrintWriter out = user.getPrintWriter();
 			out.println(message);
 		}
+	}
+	
+	/**
+	 * Add a client to a conversation, updating the conversation history and system mappings.
+	 * @param user The client to be added to the conversation.
+	 * @param conversation The conversation to which the client will be added.
+	 * @param timestamp The time at which the client is added to the conversation.
+	 */
+	private void addUserToConversation(User user, Conversation conversation, String timeStamp){
+		conversation.addUser(user, timeStamp);
+		user.addConversation(conversation);
+		conversation.addMessage("MASTER", user.getUserID() + " has entered the room.", timeStamp);
+		this.sendMessageToAllUsersInConversation(conversation, "SEND_MESSAGE CONVERSATION_ID " + 
+				conversation.getConversationID() + " " + conversation.getLastMessage().toString());
+		this.sendMessageToAllExceptOneClient(user.getUserID(), "USER_ENTER_CHAT CONVERSATION_ID " +
+				conversation.getConversationID() + " USER_ID " + user.getUserID());
 	}
 	
 	/**
