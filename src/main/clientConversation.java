@@ -1,7 +1,8 @@
 package main;
 
-import gui.conversationgui;
 import javax.swing.SwingUtilities;
+
+import oldgui.conversationgui;
 
 public class clientConversation {
 	

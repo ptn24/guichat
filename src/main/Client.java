@@ -1,7 +1,5 @@
 package main;
 
-import gui.logingui;
-import gui.maingui;
 
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -24,6 +22,9 @@ import java.util.TreeSet;
 
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
+
+import oldgui.logingui;
+import oldgui.maingui;
 
 /**
  * GUI chat client runner.
