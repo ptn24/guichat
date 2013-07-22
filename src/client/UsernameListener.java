@@ -7,15 +7,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JTextField;
 
-/**
- * This class listens to user input in the Port view of the Login window.
- * @author Peter
- *
- */
-public class PortListener implements ActionListener, LoginListener{
+public class UsernameListener implements ActionListener, LoginListener{
 	private final LoginFrame loginFrame;
 	
-	public PortListener(LoginFrame loginFrame){
+	public UsernameListener(LoginFrame loginFrame){
 		this.loginFrame = loginFrame;
 	}
 	
@@ -23,7 +18,7 @@ public class PortListener implements ActionListener, LoginListener{
 		String command = ae.getActionCommand();
 		
 		if(command.equals("Back")){
-			this.loginFrame.createIPView();
+			this.loginFrame.createPortView();
 		}
 		
 		else if(command.equals("Next") || command.equals("userEntryTextField")){
@@ -36,23 +31,9 @@ public class PortListener implements ActionListener, LoginListener{
 	}
 	
 	public void check(String userEntry){
-		try{
-			int port = Integer.parseInt(userEntry);
-			
-			//Requires 0 <= port <= 65535.
-			if(!(port >= 0 && port <= 65535)){
-				this.loginFrame.setErrorPanelLabel("Port error!");
-			}
-			
-			else{
-				this.loginFrame.setUserEnteredPort(port);
-				this.loginFrame.createUsernameView();
-			}
-		}
-		
-		catch (NumberFormatException nfe){
-			this.loginFrame.setErrorPanelLabel("Port error!");
-		}
+		this.loginFrame.setUserEnteredUsername(userEntry);
+		this.loginFrame.launchGUIChat();
+		//TODO: implement proper checks.
 	}
 
 }

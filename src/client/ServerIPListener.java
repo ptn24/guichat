@@ -7,6 +7,11 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JTextField;
 
+/**
+ * This class listens to user input on the IP view of the Login window.
+ * @author Peter
+ *
+ */
 public class ServerIPListener implements ActionListener, LoginListener{
 	private final LoginFrame loginFrame;
 	
@@ -22,24 +27,9 @@ public class ServerIPListener implements ActionListener, LoginListener{
 		this.check(userEntry);
 	}
 	
+	//TODO: implement proper checks
 	public void check(String userEntry){
-		try{
-			int ip = Integer.valueOf(userEntry);
-			this.loginFrame.setUserEnteredIP(ip);
-			this.loginFrame.createPortView();
-		}
-		
-		catch (NumberFormatException nfe){
-			if(userEntry.equals("localhost")){
-				this.loginFrame.setUserEnteredIP(-1);
-				this.loginFrame.createPortView();
-				
-			}
-			
-			else{
-				this.loginFrame.setErrorPanelLabel("ERROR!");
-			}
-			
-		}
+		this.loginFrame.setUserEnteredIP(userEntry);
+		this.loginFrame.createPortView();
 	}
 }

@@ -8,7 +8,7 @@ public class ErrorPanel extends JPanel{
 	private final JLabel errorLabel;
 	
 	public ErrorPanel(){
-		this.errorLabel = new JLabel("Temporary Default Error.");
+		this.errorLabel = new JLabel(" ");
 		this.errorLabel.setName("errorLabel");
 		this.add(this.errorLabel);
 	}
@@ -25,6 +25,6 @@ public class ErrorPanel extends JPanel{
 	 * Clear the text of 'errorLabel'.
 	 */
 	public void clearErrorLabel(){
-		this.errorLabel.setText("Temporary Default Error.");
+		this.errorLabel.setText(" ");
 	}
 }
