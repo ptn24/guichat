@@ -16,17 +16,17 @@ import gui.LoginFrame;
  *
  */
 public class Client implements Runnable{
-	private final LoginFrame loginFrame;
+	//private final LoginFrame loginFrame;
 	
 	public Client(){
 		//TODO: implement
-		this.loginFrame = new LoginFrame(this);
-		loginFrame.setVisible(true);
+		LoginFrame.create(this);
 	}
 	
-	public int login(String ip, int port, String username){
+	
+	public String handleLogOn(String ip, int port, String username){
 		try {
-			Socket socket = new Socket(InetAddress.getByName(ip), port);
+			final Socket socket = new Socket(InetAddress.getByName(ip), port);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			
@@ -36,23 +36,52 @@ public class Client implements Runnable{
 			while(line.equals("")){
 				line = in.readLine();
 			}
-			System.out.print(line);
-			System.out.print("Connected to server...");
-			return 0;
+			
+			if(line.equals("LOG_ON USER_ID " + username)){
+				System.out.print("Success!");
+				
+				//Create a thread to handle the client's connection to the server.
+				Thread thread = new Thread(new Runnable(){
+					public void run(){
+						try {
+							handleConnection(socket);
+						} 
+						
+						catch (IOException e) {
+							e.printStackTrace();
+							//TODO: implement.
+						}
+					}
+				});
+				thread.start();
+			}
+			
+			return line;
 		} 
 		
 		catch (UnknownHostException e) {
-			return -1;
+			return null;
 		} 
 		
 		catch (IOException e) {
-			return -1;
+			return null;
 		}
 	}
 	
 	private void handleConnection(Socket socket) throws IOException{
+		System.out.print("handling connection...");
+		
 		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		
+		try{
+			for(String line = in.readLine(); line != null; line = in.readLine()){
+				//TODO:implement
+			}
+		}
+		
+		finally{
+			
+		}
 		//TODO: implement.
 	}
 	

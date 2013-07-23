@@ -4,8 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 
 import javax.swing.Box;
@@ -247,15 +249,34 @@ public class LoginFrame extends JFrame{
 	}
 	
 	public void launchGUIChat(){
-		int response = this.client.login(this.userEnteredIP, 
+		String serverResponse = this.client.handleLogOn(this.userEnteredIP, 
 				this.userEnteredPort, 
 				this.userEnteredUsername);
 		
-		System.out.print(response);
+		//System.out.print(serverResponse);
+		
+		if(serverResponse == null){
+			System.out.print("Unable to connect...");
+			this.userEntryTextField.setText(this.userEnteredUsername);
+			this.errorPanel.setErrorLabel("Invalid IP and/or port number.");
+		}
+		
+		else if(serverResponse.equals("LOG_ON USER_ID " + this.userEnteredUsername)){
+			SwingUtilities.invokeLater(new Runnable(){
+				public void run(){
+					setVisible(false);
+				}
+			});
+		}
+		
+		//TODO: implement other responses.
 	}
 	
+	/**
+	 * Create the GUI on the Swing event thread.
+	 * @param client
+	 */
 	public static void create(final Client client){
-		//Create the GUI on the Swing event thread.
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
 				new LoginFrame(client).setVisible(true);
