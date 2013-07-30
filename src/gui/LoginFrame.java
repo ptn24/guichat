@@ -164,6 +164,15 @@ public class LoginFrame extends JFrame{
 	public void setUserEnteredUsername(String username){
 		this.userEnteredUsername = username;
 	}
+	
+	/**
+	 * 
+	 * @return The value of the Username field.
+	 */
+	public String getUserEnteredUsername(){
+		return this.userEnteredUsername;
+	}
+	
 	/**
 	 * 
 	 * @return The value of the IP field (used for testing purposes).
@@ -248,44 +257,26 @@ public class LoginFrame extends JFrame{
 		this.userEntryTextField.addActionListener(this.currentListener);
 	}
 	
-	public void launchGUIChat(){
-		String serverResponse = this.client.handleLogOn(this.userEnteredIP, 
+	public void login(){
+		int serverResponse = this.client.login(this.userEnteredIP, 
 				this.userEnteredPort, 
 				this.userEnteredUsername);
 		
-		//System.out.print(serverResponse);
 		
-		if(serverResponse == null){
-			System.out.print("Unable to connect...");
+		if(serverResponse == -1){
 			this.userEntryTextField.setText(this.userEnteredUsername);
 			this.errorPanel.setErrorLabel("Invalid IP and/or port number.");
 		}
-		
-		else if(serverResponse.equals("LOG_ON USER_ID " + this.userEnteredUsername)){
-			SwingUtilities.invokeLater(new Runnable(){
-				public void run(){
-					setVisible(false);
-				}
-			});
-		}
-		
-		//TODO: implement other responses.
-	}
-	
-	/**
-	 * Create the GUI on the Swing event thread.
-	 * @param client
-	 */
-	public static void create(final Client client){
-		SwingUtilities.invokeLater(new Runnable(){
-			public void run(){
-				new LoginFrame(client).setVisible(true);
-			}
-		});
 	}
 	
 	public static void main(String[] args){
 		Client client = new Client();
-		LoginFrame.create(client);
+		final LoginFrame loginFrame = new LoginFrame(client);
+		
+		SwingUtilities.invokeLater(new Runnable(){
+			public void run(){
+				loginFrame.setVisible(true);
+			}
+		});
 	}
 }

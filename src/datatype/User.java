@@ -18,12 +18,12 @@ import java.util.Set;
  */
 public class User {
 	private final String userID;
-	private final Socket socket;
-	private final PrintWriter out;
+	private Socket socket;
+	private PrintWriter out;
 	private Set<Conversation> conversations;
 	
 	/**
-	 * The constructor for the User.
+	 * The constructor for the User from the Server.
 	 * @param userID The String representation of the ID.
 	 * @param socket The socket to which this user is connected.
 	 * @throws IOException 
@@ -33,6 +33,14 @@ public class User {
 		this.socket = socket;
 		this.out = new PrintWriter(socket.getOutputStream(), true);
 		this.conversations = Collections.synchronizedSet(new HashSet<Conversation>());
+	}
+	
+	/**
+	 * The constructor for the User from the Client.
+	 * @param userID The String representation of the ID.
+	 */
+	public User(String userID){
+		this.userID = userID;
 	}
 	
 	/**

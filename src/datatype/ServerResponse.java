@@ -34,4 +34,56 @@ public class ServerResponse {
 		SEND_INVITE_FAIL3,
 		INVALID_INPUT
 	}
+	
+	private final Type type;
+	private final String userID, conversationID, time, text;
+	
+	public ServerResponse(Type type, String userID, String conversationID, String time, 
+			String text){
+		this.type = type;
+		this.userID = userID;
+		this.conversationID = conversationID;
+		this.time = time;
+		this.text = text;
+	}
+	
+	/**
+	 * 
+	 * @return The type of this ServerResponse.
+	 */
+	public Type getType(){
+		return this.type;
+	}
+	
+	/**
+	 * 
+	 * @return The client's username.
+	 */
+	public String getUserID(){
+		return this.userID;
+	}
+	
+	/**
+	 * 
+	 * @return The conversation name.
+	 */
+	public String getConversationID(){
+		return this.conversationID;
+	}
+	
+	/**
+	 * 
+	 * @return The time of the response.
+	 */
+	public String getTime(){
+		return this.getTime();
+	}
+	
+	/**
+	 * 
+	 * @return The text from the server's response.
+	 */
+	public String getText(){
+		return this.getText();
+	}
 }

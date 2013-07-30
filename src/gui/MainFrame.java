@@ -10,20 +10,28 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
+import client.Client;
+
 public class MainFrame extends JFrame{
+	private final Client client;
 	private final GroupLayout layout;
 	
 	private final JPanel mainPanel;
 	private final JTabbedPane mainTabbedPane;
+	private final UserTab userTab;
 	
 	private final JPanel bottomPanel;
 	private final JButton createNewChatButton;
 	private final JButton logOutButton;
 	
-	public MainFrame(){
+	public MainFrame(Client client){
+		this.client = client;
+		
 		//Setup the main panel.
 		this.mainPanel = new JPanel();
 		this.mainTabbedPane = new JTabbedPane();
+		this.userTab = new UserTab();
+		this.mainTabbedPane.addTab("Users", this.userTab);
 		this.mainPanel.add(this.mainTabbedPane);
 		
 		//TODO: make the tabs
@@ -66,16 +74,10 @@ public class MainFrame extends JFrame{
 		setTitle("GUI Chat - Main");
 		pack();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
 	}
 	
-	
-	public static void main(String[] args){
-		SwingUtilities.invokeLater(new Runnable(){
-			public void run(){
-				new MainFrame().setVisible(true);
-			}
-		});
+	public UserTab getUserTab(){
+		return this.userTab;
 	}
 }
 

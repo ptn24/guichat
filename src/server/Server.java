@@ -299,7 +299,7 @@ public class Server{
 				
 				//Add the new conversation to the system and update the mappings.
 				String timeStamp = this.getTime();
-				Conversation conversation = new Conversation(conversationID, user, timeStamp);
+				Conversation conversation = new Conversation(conversationID);
 				this.conversationIDToConversation.put(conversationID, conversation);
 				this.addUserToConversation(user, conversation, timeStamp);
 				
@@ -582,7 +582,7 @@ public class Server{
 	 * @param timestamp The time at which the client is added to the conversation.
 	 */
 	private void addUserToConversation(User user, Conversation conversation, String timeStamp){
-		conversation.addUser(user, timeStamp);
+		conversation.addUser(user);
 		user.addConversation(conversation);
 		conversation.addMessage("MASTER", user.getUserID() + " has entered the room.", timeStamp);
 		this.sendMessageToAllUsersInConversation(conversation, "SEND_MESSAGE CONVERSATION_ID " + 
@@ -598,7 +598,7 @@ public class Server{
 	 * @param timeStamp The time at which the client is removed from the conversation.
 	 */
 	private void removeUserFromConversation(User user, Conversation conversation, String timeStamp){
-		conversation.removeUser(user, timeStamp);
+		conversation.removeUser(user);
 		user.removeConversation(conversation);
 		conversation.addMessage("MASTER", user.getUserID() + " has left the room.", timeStamp);
 		this.sendMessageToAllUsersInConversation(conversation, "SEND_MESSAGE CONVERSATION_ID " + 

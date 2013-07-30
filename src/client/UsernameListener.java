@@ -32,7 +32,7 @@ public class UsernameListener implements ActionListener, LoginListener{
 	
 	public void check(String userEntry){
 		this.loginFrame.setUserEnteredUsername(userEntry);
-		this.loginFrame.launchGUIChat();
+		this.loginFrame.login();
 		//TODO: implement proper checks.
 	}
 

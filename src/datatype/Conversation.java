@@ -21,18 +21,17 @@ public class Conversation {
 	private ArrayList<Dialogue> history;
 
 	/**
-	 * Constructor for the conversation. Add the creator to the conversation and update the history
-	 * of the conversation.
+	 * Constructor for the conversation from the server. Add the creator to the conversation and 
+	 * update the history of the conversation.
 	 * @param conversationID The ID of the conversation.
 	 * @param user The user who created the conversation.
 	 * @param timeStamp The time this conversation was created.
 	 */
-	public Conversation(String conversationID, User user, String timeStamp){
+	public Conversation(String conversationID){
 		this.conversationID = conversationID;
 		this.users = Collections.synchronizedSet(new HashSet<User>());
 		this.history = new ArrayList<Dialogue>();
 		
-		//this.addUser(user, timeStamp);
 	}
 	
 	/**
@@ -76,7 +75,7 @@ public class Conversation {
 	 * @param user The user to be added.
 	 * Requires that this user is not currently in the conversation.
 	 */
-	public void addUser(User user, String timeStamp){
+	public void addUser(User user){
 		this.users.add(user);
 	}
 	
@@ -85,7 +84,7 @@ public class Conversation {
 	 * Remove the user from the conversation.
 	 * @param user The user to be removed. Requires that this user is in the conversation.
 	 */
-	public void removeUser(User user, String timeStamp){
+	public void removeUser(User user){
 		this.users.remove(user);
 	}
 	
