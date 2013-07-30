@@ -161,7 +161,6 @@ public class Client implements Runnable{
 	private void handleUserLogOn(String userID){
 		this.userNameToUser.put(userID, new User(userID));
 		
-		System.out.print(this.userNameToUser + "\n");
 		//TODO: update gui.
 		UserTab userTab = this.mainFrame.getUserTab();
 		userTab.addUser(userID);
@@ -172,6 +171,8 @@ public class Client implements Runnable{
 		
 		System.out.print(this.userNameToUser + "\n");
 		//TODO: update gui.
+		UserTab userTab = this.mainFrame.getUserTab();
+		userTab.removeUser(userID);
 	}
 	
 	private void handleAddConversation(String conversationID){

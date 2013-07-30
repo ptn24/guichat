@@ -19,6 +19,7 @@ public class MainFrame extends JFrame{
 	private final JPanel mainPanel;
 	private final JTabbedPane mainTabbedPane;
 	private final UserTab userTab;
+	private final ConversationTab conversationTab;
 	
 	private final JPanel bottomPanel;
 	private final JButton createNewChatButton;
@@ -31,7 +32,11 @@ public class MainFrame extends JFrame{
 		this.mainPanel = new JPanel();
 		this.mainTabbedPane = new JTabbedPane();
 		this.userTab = new UserTab();
+		this.conversationTab = new ConversationTab();
+		
 		this.mainTabbedPane.addTab("Users", this.userTab);
+		this.mainTabbedPane.addTab("Chats", this.conversationTab);
+		
 		this.mainPanel.add(this.mainTabbedPane);
 		
 		//TODO: make the tabs
