@@ -32,7 +32,7 @@ public class MainFrame extends JFrame{
 		this.mainPanel = new JPanel();
 		this.mainTabbedPane = new JTabbedPane();
 		this.userTab = new UserTab();
-		this.conversationTab = new ConversationTab();
+		this.conversationTab = new ConversationTab(this.client);
 		
 		this.mainTabbedPane.addTab("Users", this.userTab);
 		this.mainTabbedPane.addTab("Chats", this.conversationTab);
@@ -83,6 +83,10 @@ public class MainFrame extends JFrame{
 	
 	public UserTab getUserTab(){
 		return this.userTab;
+	}
+	
+	public ConversationTab getConversationTab(){
+		return this.conversationTab;
 	}
 }
 

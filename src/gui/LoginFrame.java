@@ -60,6 +60,7 @@ public class LoginFrame extends JFrame{
 		//If the IP is already set, place the value in the text field.
 		if(this.userEnteredIP != null){
 			this.userEntryTextField.setText(this.userEnteredIP);
+			this.userEntryTextField.selectAll();
 		}
 	
 		this.errorPanel = new ErrorPanel();
@@ -202,6 +203,7 @@ public class LoginFrame extends JFrame{
 		//If the IP is already set, place the value in the text field.
 		if(this.userEnteredIP != null){
 			this.userEntryTextField.setText(this.userEnteredIP);
+			this.userEntryTextField.selectAll();
 		}
 		
 		this.nextButton.removeActionListener(this.currentListener);
@@ -225,6 +227,7 @@ public class LoginFrame extends JFrame{
 		//If the port number is already set, place this value in the text box.
 		if(this.userEnteredPort != -1){
 			this.userEntryTextField.setText(String.valueOf(this.userEnteredPort));
+			this.userEntryTextField.selectAll();
 		}
 		
 		this.nextButton.removeActionListener(this.currentListener);
@@ -245,6 +248,7 @@ public class LoginFrame extends JFrame{
 		//If the username is already set, place this value in the text box.
 		if(this.userEnteredUsername != null){
 			this.userEntryTextField.setText(this.userEnteredUsername);
+			this.userEntryTextField.selectAll();
 		}
 		
 		this.nextButton.removeActionListener(this.currentListener);
@@ -265,6 +269,7 @@ public class LoginFrame extends JFrame{
 		
 		if(serverResponse == -1){
 			this.userEntryTextField.setText(this.userEnteredUsername);
+			this.userEntryTextField.selectAll();
 			this.errorPanel.setErrorLabel("Invalid IP and/or port number.");
 		}
 	}

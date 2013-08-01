@@ -16,6 +16,7 @@ import datatype.Conversation;
 import datatype.ServerResponse;
 import datatype.User;
 
+import gui.ConversationTab;
 import gui.LoginFrame;
 import gui.MainFrame;
 import gui.UserTab;
@@ -31,6 +32,7 @@ public class Client implements Runnable{
 	
 	private Socket mySocket;
 	private PrintWriter myOut;
+	private User myUser;
 	private String myUsername;
 	
 	private HashMap<String, User> userNameToUser;
@@ -155,13 +157,28 @@ public class Client implements Runnable{
 		case LOG_OFF:
 			this.handleLogOff();
 			break;
+			
+		case LOG_OFF_FAIL:
+			this.handleLogOffFail();
+			break;
+			
+		case START_CHAT:
+			this.handleStartChat(serverResponse.getConversationID());
+			break;
+			
+		//TODO: implement.
+			
+		case ENTER_CHAT:
+			this.handleEnterChat(serverResponse.getConversationID());
+			break;
+			
 		}
 	}
 	
 	private void handleUserLogOn(String userID){
 		this.userNameToUser.put(userID, new User(userID));
 		
-		//TODO: update gui.
+		//Update main gui.
 		UserTab userTab = this.mainFrame.getUserTab();
 		userTab.addUser(userID);
 	}
@@ -169,24 +186,40 @@ public class Client implements Runnable{
 	private void handleUserLogOff(String userID){
 		this.userNameToUser.remove(userID);
 		
-		System.out.print(this.userNameToUser + "\n");
-		//TODO: update gui.
+		//Update main gui.
 		UserTab userTab = this.mainFrame.getUserTab();
 		userTab.removeUser(userID);
+		
+		//TODO: how to update the conversation gui?
 	}
 	
 	private void handleAddConversation(String conversationID){
 		this.conversationNameToConversation.put(conversationID, new Conversation(conversationID));
 		
-		//TODO: update gui.
+		//Update main gui.
+		ConversationTab conversationTab = this.mainFrame.getConversationTab();
+		conversationTab.addConversationNode(conversationID);
 	}
 	
 	private void handleUserEnterChat(String conversationID, String userID){
 		Conversation conversation = this.conversationNameToConversation.get(conversationID);
-		User user = this.userNameToUser.get(userID);
+		User user;
+		
+		if(userID.equals(this.myUsername)){
+			user = this.myUser;
+		}
+		
+		else{
+			user = this.userNameToUser.get(userID);
+		}
+		
 		conversation.addUser(user);
 		
-		//TODO: update gui.
+		//Update main gui.
+		ConversationTab conversationTab = this.mainFrame.getConversationTab();
+		conversationTab.addUserNode(conversationID, userID);
+		
+		//TODO: how to update the conversation gui?
 	}
 	
 	private void handleUserExitChat(String conversationID, String userID){
@@ -194,15 +227,19 @@ public class Client implements Runnable{
 		User user = this.userNameToUser.get(userID);
 		conversation.removeUser(user);
 		
-		//TODO: update gui.
+		//Update main gui.
+		ConversationTab conversationTab = this.mainFrame.getConversationTab();
+		conversationTab.removeUserNode(conversationID, userID);
+		
+		//TODO: how to update the conversation gui?
 	}
 	
 	private void handleSendMessage(String conversationID, String userID, String time, String text){
+		//TODO: fix this up. this will cause redundancies.
 		Conversation conversation = this.conversationNameToConversation.get(conversationID);
 		conversation.addMessage(userID, text, time);
 		
-		System.out.print(conversation.getLastMessage().toString());
-		//TODO: update gui.
+		//TODO: update conversation gui.
 	}
 	
 	private void handleReceivedInvite(String conversationID){
@@ -213,6 +250,8 @@ public class Client implements Runnable{
 	
 	private void handleLogOn(String userID){
 		this.myUsername = userID;
+		this.mainFrame.getConversationTab().setUsername(userID);
+		this.myUser = new User(userID);
 		this.userNameToUser = new HashMap<String, User>();
 		this.conversationNameToConversation = new HashMap<String, Conversation>();
 		this.myInvites = new HashSet<String>();
@@ -238,6 +277,40 @@ public class Client implements Runnable{
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void handleLogOffFail(){
+		//TODO: implement.
+	}
+	
+	private void handleStartChat(String conversationID){
+		this.handleAddConversation(conversationID);
+		this.handleUserEnterChat(conversationID, this.myUsername);
+		
+		//TODO: open a new window for the chat.
+	}
+	
+	private void handleEnterChat(String conversationID){
+		this.handleUserEnterChat(conversationID, this.myUsername);
+		
+		//TODO: open a new window for the chat.
+	}
+	
+	/**
+	 * Request the server to enter a conversation. This is activated from the conversation tab's
+	 * popup listener.
+	 * @param conversationID
+	 */
+	public void requestEnterChat(String conversationID){
+		this.myOut.println("ENTER_CHAT CONVERSATION_ID " + conversationID);
+	}
+	
+	/**
+	 * 
+	 * @return The client's username.
+	 */
+	public String getMyUsername(){
+		return this.myUsername;
 	}
 	
 	public void run(){

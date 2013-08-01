@@ -297,18 +297,17 @@ public class Server{
 				 */
 				out.println("START_CHAT CONVERSATION_ID " + conversationID);
 				
-				//Add the new conversation to the system and update the mappings.
-				String timeStamp = this.getTime();
-				Conversation conversation = new Conversation(conversationID);
-				this.conversationIDToConversation.put(conversationID, conversation);
-				this.addUserToConversation(user, conversation, timeStamp);
-				
-				
 				/*
 				 * To everyone else.
 				 */
 				this.sendMessageToAllExceptOneClient(user.getUserID(), 
 						"ADD_CONVERSATION CONVERSATION_ID " + conversationID);
+				
+				//Add the new conversation to the system and update the mappings.
+				String timeStamp = this.getTime();
+				Conversation conversation = new Conversation(conversationID);
+				this.conversationIDToConversation.put(conversationID, conversation);
+				this.addUserToConversation(user, conversation, timeStamp);
 			}
 		}		
 	}
