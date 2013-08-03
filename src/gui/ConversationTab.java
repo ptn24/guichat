@@ -21,6 +21,10 @@ import javax.swing.tree.TreeSelectionModel;
 import client.Client;
 
 public class ConversationTab extends JPanel implements MouseListener{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final Client client;
 	private String myUsername;
 	
@@ -38,7 +42,6 @@ public class ConversationTab extends JPanel implements MouseListener{
 		this.userNameToConversationNameToUserNode = new HashMap<String, HashMap<String, DefaultMutableTreeNode>>();
 		
 		//Instantiate the tree.
-		//TODO: Should we create the tree using the DefaultTreeModel with a listener?
 		this.activeConversationsNode = new DefaultMutableTreeNode("Active");
 		this.conversationTree = new JTree(this.activeConversationsNode);
 		
@@ -149,7 +152,6 @@ public class ConversationTab extends JPanel implements MouseListener{
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 		if(SwingUtilities.isRightMouseButton(arg0)){			
 			int row = this.conversationTree.getRowForLocation(arg0.getX(), arg0.getY());
 			
@@ -200,7 +202,6 @@ public class ConversationTab extends JPanel implements MouseListener{
 	}
 	
 	class PopupListener implements ActionListener{
-		//TODO: need to distinguish between 'enter chat' and 'exit chat'
 		private final String conversationID;
 		
 		public PopupListener(String conversationID){

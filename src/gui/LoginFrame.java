@@ -1,23 +1,13 @@
 package gui;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.util.HashMap;
-
 import javax.swing.Box;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
@@ -94,9 +84,7 @@ public class LoginFrame extends JFrame{
 				.addGroup(this.layout.createSequentialGroup()
 						.addComponent(this.backButton)
 						.addComponent(verticalGap)
-						.addGroup(this.layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-								.addComponent(this.userEntryTextField)
-						)
+						.addComponent(this.userEntryTextField)
 						.addComponent(verticalGap)
 						.addComponent(this.nextButton)
 				)
@@ -107,10 +95,7 @@ public class LoginFrame extends JFrame{
 				.addComponent(this.topLabel)
 				.addGroup(this.layout.createParallelGroup()
 						.addComponent(verticalGap)
-						.addGroup(this.layout.createSequentialGroup()
-								.addComponent(this.userEntryTextField)
-								//.addComponent(errorPanel)
-						)
+						.addComponent(this.userEntryTextField)
 						.addComponent(verticalGap)
 				)
 				.addComponent(errorPanel)
@@ -204,6 +189,7 @@ public class LoginFrame extends JFrame{
 		if(this.userEnteredIP != null){
 			this.userEntryTextField.setText(this.userEnteredIP);
 			this.userEntryTextField.selectAll();
+			this.userEntryTextField.requestFocus();
 		}
 		
 		this.nextButton.removeActionListener(this.currentListener);
@@ -228,6 +214,7 @@ public class LoginFrame extends JFrame{
 		if(this.userEnteredPort != -1){
 			this.userEntryTextField.setText(String.valueOf(this.userEnteredPort));
 			this.userEntryTextField.selectAll();
+			this.userEntryTextField.requestFocus();
 		}
 		
 		this.nextButton.removeActionListener(this.currentListener);
@@ -249,6 +236,7 @@ public class LoginFrame extends JFrame{
 		if(this.userEnteredUsername != null){
 			this.userEntryTextField.setText(this.userEnteredUsername);
 			this.userEntryTextField.selectAll();
+			this.userEntryTextField.requestFocus();
 		}
 		
 		this.nextButton.removeActionListener(this.currentListener);
@@ -266,10 +254,10 @@ public class LoginFrame extends JFrame{
 				this.userEnteredPort, 
 				this.userEnteredUsername);
 		
+		this.userEntryTextField.setText(this.userEnteredUsername);
+		this.userEntryTextField.selectAll();
 		
 		if(serverResponse == -1){
-			this.userEntryTextField.setText(this.userEnteredUsername);
-			this.userEntryTextField.selectAll();
 			this.errorPanel.setErrorLabel("Invalid IP and/or port number.");
 		}
 	}

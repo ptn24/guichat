@@ -76,7 +76,7 @@ public class ServerResponse {
 	 * @return The time of the response.
 	 */
 	public String getTime(){
-		return this.getTime();
+		return this.time;
 	}
 	
 	/**
@@ -84,6 +84,6 @@ public class ServerResponse {
 	 * @return The text from the server's response.
 	 */
 	public String getText(){
-		return this.getText();
+		return this.text;
 	}
 }

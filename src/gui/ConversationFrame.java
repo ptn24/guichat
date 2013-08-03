@@ -1,12 +1,11 @@
 package gui;
 
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -16,40 +15,53 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
+import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
+import client.Client;
+
 import datatype.MyUserTable;
 import datatype.UserTableModel;
 
-public class ConversationFrame extends JFrame implements MyUserTable, KeyListener{
+public class ConversationFrame extends JFrame implements MyUserTable, WindowListener{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final Client client;
+	private final String conversationID;
+	
 	private final GroupLayout layout;
 	private final JPanel conversationPanel, userPanel;
 	private final JTextPane conversationTextPane;
 	private final JTextArea messageTextArea;
-	//private final JTextField messageTextField;
 	private final JSplitPane splitPane;
 	private final JScrollPane conversationScrollPane, messageScrollPane, userScrollPane;
 	private final JTable userTable;
 	private final JButton inviteFriendButton;
 	
 	private final String newline = "\n";
-	
-	public ConversationFrame(){
+		
+	public ConversationFrame(Client client, String conversationID){
+		this.client = client;
+		this.conversationID = conversationID;
+		
 		//Instantiate the text pane.
 		this.conversationTextPane = new JTextPane();
 		this.conversationTextPane.setEditable(false);
 		
+		//Put the text pane into a scroll pane.
 		this.conversationScrollPane = new JScrollPane(this.conversationTextPane);
 		this.conversationScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		this.conversationScrollPane.setPreferredSize(new Dimension(500, 300));
 		
+		//Put the scroll pane into a panel.
 		this.conversationPanel = new JPanel();
 		this.conversationPanel.setMinimumSize(new Dimension(500, 300));
 		this.conversationPanel.add(conversationScrollPane);
@@ -59,31 +71,34 @@ public class ConversationFrame extends JFrame implements MyUserTable, KeyListene
 		this.userTable = new JTable(new UserTableModel());
 		this.userTable.setTableHeader(null);
 		
+		//Put the table into a scroll pane.
 		this.userScrollPane = new JScrollPane(this.userTable);
 		this.userScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		this.userScrollPane.setPreferredSize(new Dimension(150, 300));
 		
+		//Put the scroll pane into a panel.
 		this.userPanel = new JPanel();
 		this.userPanel.setMinimumSize(new Dimension(150, 300));
 		this.userPanel.add(this.userScrollPane);
 		this.userPanel.setBorder(BorderFactory.createTitledBorder("Users"));
 		
 		//Instantiate the text area.
-		
 		this.messageTextArea = new JTextArea(2, 1);
 		this.messageTextArea.setLineWrap(true);
 		this.messageTextArea.setWrapStyleWord(true);
 		
-		//TODO: is this the solution?
-		this.messageTextArea.addKeyListener(this);
+		//Setup the key bindings for the text area.
+		this.messageTextArea.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), 
+				"myMessageTextAreaAction");
+		this.messageTextArea.getInputMap().put(KeyStroke.getKeyStroke("shift ENTER"), 
+				"myMessageTextAreaAction");
+		this.messageTextArea.getActionMap().put("myMessageTextAreaAction", 
+				new MyMessageTextAreaAction(this.client, 
+						this,
+						"myMessageTextAreaAction"));
+
+		//Put the text area into a scroll pane.
 		this.messageScrollPane = new JScrollPane(this.messageTextArea);
-		
-		
-		//TODO: what to do about the text field? want it to wrap properly
-		/*
-		this.messageTextField = new JTextField(null, null, 5);
-		this.messageScrollPane = new JScrollPane(this.messageTextField);
-		*/
 		
 		//Instantiate the split pane.
 		this.splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.conversationPanel,
@@ -117,11 +132,18 @@ public class ConversationFrame extends JFrame implements MyUserTable, KeyListene
 		this.layout.setAutoCreateContainerGaps(true);
 		
 		//Setup the window.
-		setTitle("Conversation dummy");
-		pack();
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		//WILL CHANGE!
+		this.setTitle("GUI CHAT - " + conversationID);
+		this.pack();
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);		//WILL CHANGE!
+		this.addWindowListener(this);
 	}
 	
+	/**
+	 * Add a message to the text pane.
+	 * @param userID The username of the client who sent the message.
+	 * @param time The time the message was sent.
+	 * @param text The text of the message.
+	 */
 	public void addMessage(String userID, String time, String text){
 		StyledDocument doc = this.conversationTextPane.getStyledDocument();
 		this.addStylesToDocument(doc);
@@ -144,8 +166,14 @@ public class ConversationFrame extends JFrame implements MyUserTable, KeyListene
 				System.err.println("Couldn't insert initial text into text pane.");
 			}
 		}
+		
+		this.conversationTextPane.setCaretPosition(doc.getLength());
 	}
 	
+	/**
+	 * Add the style definitions to the text pane.
+	 * @param doc
+	 */
 	private void addStylesToDocument(StyledDocument doc){
 		//Initialize the default style.
 		Style def = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);
@@ -164,6 +192,9 @@ public class ConversationFrame extends JFrame implements MyUserTable, KeyListene
 		StyleConstants.setFontSize(time, 10);
 	}
 	
+	/**
+	 * Add a user to the user table.
+	 */
 	public void addUser(String userID){
 		UserTableModel tm = (UserTableModel) this.userTable.getModel();
 		tm.add(userID);
@@ -171,6 +202,9 @@ public class ConversationFrame extends JFrame implements MyUserTable, KeyListene
 		this.userTable.setModel(tm);
 	}
 	
+	/**
+	 * Remove a user from the user table.
+	 */
 	public void removeUser(String userID){
 		UserTableModel tm = (UserTableModel) this.userTable.getModel();
 		tm.remove(userID);
@@ -178,34 +212,89 @@ public class ConversationFrame extends JFrame implements MyUserTable, KeyListene
 		this.userTable.setModel(tm);
 	}
 	
-	private static void create(){
-		ConversationFrame frame = new ConversationFrame();
-		frame.setVisible(true);
+	public String getConversationID(){
+		return this.conversationID;
 	}
 	
-	public static void main(String[] args){
-		SwingUtilities.invokeLater(new Runnable(){
-			public void run(){
-				create();
+	public JTextArea getMyMessageTextArea(){
+		return this.messageTextArea;
+	}
+	
+	/**
+	 * This action is applied to the message text area in the conversation window. When the client
+	 * presses the "ENTER" key, the text in the text area is submitted to the server. When the
+	 * client presses the "SHIFT+ENTER" key, a newline is inserted into the text area.
+	 */
+	class MyMessageTextAreaAction extends AbstractAction {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private final Client client;
+		private final ConversationFrame conversationFrame;
+
+		public MyMessageTextAreaAction(Client client, ConversationFrame conversationFrame, String name){
+			super(name);
+			this.client = client;
+			this.conversationFrame = conversationFrame;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(e.getModifiers() == 0){
+				String text = this.conversationFrame.getMyMessageTextArea().getText();
+				this.conversationFrame.getMyMessageTextArea().setText("");
+				
+				//Submit the message to the server.
+				this.client.requestSendMessage(conversationID, text);
 			}
-		});
+			
+			else if(e.getModifiers() == 1){
+				this.conversationFrame.getMyMessageTextArea().append(newline);
+			}
+		}
 	}
 
+
 	@Override
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
+	public void windowActivated(WindowEvent arg0) {
 		
 	}
 
 	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
+	public void windowClosed(WindowEvent arg0) {
 		
 	}
 
 	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
+	public void windowClosing(WindowEvent arg0) {
+		//Submit exit conversation to the server.
+		this.client.requestExitChat(this.conversationID);
+		
+		//Close the window.
+		this.dispose();
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent arg0) {
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent arg0) {
 		
 	}
 }
+
+

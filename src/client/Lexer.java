@@ -17,14 +17,14 @@ public class Lexer {
 			"(ADD_CONVERSATION\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(USER_ENTER_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+)|" +
 			"(USER_EXIT_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+)|" +
-			"(SEND_MESSAGE\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+\\s_TIME_[0-9]{2}:[0-9]{2}:[0-9]{2}\\s_TEXT_\\s.*)|" +
+			"(SEND_MESSAGE\\sCONVERSATION_ID\\s\\p{Alnum}+\\sUSER_ID\\s\\p{Alnum}+\\s_TIME_\\s\\p{Digit}{2}+:\\p{Digit}{2}+:\\p{Digit}{2}+\\s_TEXT_\\s.*)|" +
 			"(RECEIVED_INVITE\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(LOG_ON\\sUSER_ID\\s\\p{Alnum}+)|" +
 			"(LOG_ON_FAIL0)|" +
 			"(LOG_ON_FAIL1\\sUSER_ID\\s\\p{Alnum}+)|" +
 			"(LOG_OFF)|" +
 			"(LOG_OFF_FAIL)|" +
-			"(START_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)" +
+			"(START_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(START_CHAT_FAIL0)|" +
 			"(START_CHAT_FAIL1\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
 			"(ENTER_CHAT\\sCONVERSATION_ID\\s\\p{Alnum}+)|" +
@@ -57,7 +57,7 @@ public class Lexer {
 	 * @return The appropriate ServerResponse.
 	 */
 	public ServerResponse lex(){
-		if(!this.line.matches(this.regex)){
+		if(!this.line.matches(this.regex)){			
 			return new ServerResponse(ServerResponse.Type.INVALID_INPUT, null, null, null, null);
 		}
 		
@@ -101,7 +101,7 @@ public class Lexer {
 			}
 			
 			else if(command.equals("LOG_ON") || command.equals("LOG_ON_FAIL1")){
-				String userID = tokens[1].split("USER_ID")[1];
+				String userID = tokens[1].split("USER_ID ")[1];
 				return new ServerResponse(ServerResponse.Type.valueOf(command), userID, null, null, null);
 			}
 			
@@ -117,7 +117,7 @@ public class Lexer {
 				return new ServerResponse(ServerResponse.Type.valueOf(command), null, null, null, null);
 			}
 			
-			else{
+			else{				
 				throw new IllegalArgumentException("The program should not reach this point.");
 			}
 		}

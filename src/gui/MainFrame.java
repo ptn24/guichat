@@ -2,6 +2,8 @@ package gui;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -12,7 +14,7 @@ import javax.swing.SwingUtilities;
 
 import client.Client;
 
-public class MainFrame extends JFrame{
+public class MainFrame extends JFrame implements ActionListener{
 	private final Client client;
 	private final GroupLayout layout;
 	
@@ -45,10 +47,12 @@ public class MainFrame extends JFrame{
 		this.bottomPanel = new JPanel();
 		this.createNewChatButton = new JButton("Create New Chat");
 		this.createNewChatButton.setName("Create New Chat");
+		this.createNewChatButton.addActionListener(this);
 		this.createNewChatButton.setPreferredSize(new Dimension(150, 35));
 		
 		this.logOutButton = new JButton("Log Out");
 		this.logOutButton.setName("Log Out");
+		this.logOutButton.addActionListener(this);
 		this.logOutButton.setPreferredSize(new Dimension(150, 35));
 		
 		this.bottomPanel.add(this.createNewChatButton);
@@ -87,6 +91,20 @@ public class MainFrame extends JFrame{
 	
 	public ConversationTab getConversationTab(){
 		return this.conversationTab;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+		
+		if(arg0.getActionCommand().equals("Create New Chat")){
+			this.client.openCreateConversationWindow();
+		}
+		
+		else if(arg0.getActionCommand().equals("Log Out")){
+			this.client.requestLogOff();
+		}
+		
 	}
 }
 
