@@ -18,6 +18,10 @@ import client.ServerIPListener;
 import client.UsernameListener;
 
 public class LoginFrame extends JFrame{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final Client client;
 	private final GroupLayout layout;
 	
@@ -102,9 +106,7 @@ public class LoginFrame extends JFrame{
 				.addGroup(this.layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(this.backButton)
 						.addComponent(this.nextButton)
-				)
-				
-				
+				)				
 		);
 		
 		//Set the gaps to auto.
@@ -227,6 +229,9 @@ public class LoginFrame extends JFrame{
 		this.backButton.addActionListener(this.currentListener);
 	}
 	
+	/**
+	 * Create the username view.
+	 */
 	public void createUsernameView(){
 		//Setup the components.
 		this.topLabel.setText("Please enter your username:");

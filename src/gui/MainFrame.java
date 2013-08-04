@@ -4,17 +4,23 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import client.Client;
 
 public class MainFrame extends JFrame implements ActionListener{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final Client client;
 	private final GroupLayout layout;
 	
@@ -22,12 +28,13 @@ public class MainFrame extends JFrame implements ActionListener{
 	private final JTabbedPane mainTabbedPane;
 	private final UserTab userTab;
 	private final ConversationTab conversationTab;
+	private final InviteTab inviteTab;
 	
 	private final JPanel bottomPanel;
 	private final JButton createNewChatButton;
 	private final JButton logOutButton;
 	
-	public MainFrame(Client client){
+	public MainFrame(final Client client){
 		this.client = client;
 		
 		//Setup the main panel.
@@ -35,9 +42,11 @@ public class MainFrame extends JFrame implements ActionListener{
 		this.mainTabbedPane = new JTabbedPane();
 		this.userTab = new UserTab();
 		this.conversationTab = new ConversationTab(this.client);
+		this.inviteTab = new InviteTab();
 		
 		this.mainTabbedPane.addTab("Users", this.userTab);
 		this.mainTabbedPane.addTab("Chats", this.conversationTab);
+		this.mainTabbedPane.addTab("Invites", this.inviteTab);
 		
 		this.mainPanel.add(this.mainTabbedPane);
 		
@@ -82,7 +91,12 @@ public class MainFrame extends JFrame implements ActionListener{
 		//Setup the window.
 		setTitle("GUI Chat - Main");
 		pack();
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent e){
+				client.requestLogOff();
+			}
+		});
 	}
 	
 	public UserTab getUserTab(){

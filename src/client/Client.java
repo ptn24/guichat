@@ -30,10 +30,10 @@ import gui.UserTab;
  * @author Peter
  *
  */
-public class Client implements Runnable{
+public class Client {
 	private final LoginFrame loginFrame;
-	private final MainFrame mainFrame;
-	private final CreateConversationFrame createConversationFrame;
+	private MainFrame mainFrame;
+	private CreateConversationFrame createConversationFrame;
 	
 	private Socket mySocket;
 	private PrintWriter myOut;
@@ -47,8 +47,8 @@ public class Client implements Runnable{
 	
 	public Client(){		
 		this.loginFrame = new LoginFrame(this);
-		this.mainFrame = new MainFrame(this);
-		this.createConversationFrame = new CreateConversationFrame(this);
+		//this.mainFrame = new MainFrame(this);
+		//this.createConversationFrame = new CreateConversationFrame(this);
 		
 		//Display the login window.
 		SwingUtilities.invokeLater(new Runnable(){
@@ -112,9 +112,10 @@ public class Client implements Runnable{
 		
 		finally{
 			in.close();
+			this.mySocket.close();
+			
 			System.out.print("logging off unexpectedly...\n");
 		}
-		//TODO: implement.
 	}
 	
 	private void handleResponse(ServerResponse serverResponse){
@@ -263,12 +264,14 @@ public class Client implements Runnable{
 		UserTab userTab = this.mainFrame.getUserTab();
 		userTab.removeUser(userID);
 		
-		//TODO: how to update the conversation gui?
+		/*
+		 * Do not need to update the conversation gui because the server will send a separate
+		 * message for each conversation.
+		 */
 	}
 	
 	private void handleAddConversation(String conversationID){
 		this.conversationNameToConversation.put(conversationID, new Conversation(conversationID));
-		System.out.print("handleaddconversation: " + conversationID + "\n");
 		
 		//Update main gui.
 		ConversationTab conversationTab = this.mainFrame.getConversationTab();
@@ -289,11 +292,11 @@ public class Client implements Runnable{
 		
 		conversation.addUser(user);
 		
-		//Update main gui.
+		//Update main gui's conversation tab.
 		ConversationTab conversationTab = this.mainFrame.getConversationTab();
 		conversationTab.addUserNode(conversationID, userID);
 		
-		//Update the conversation gui's user table.
+		//Update the conversation gui's user table if this client is in the conversation.
 		if(this.conversationNameToConversationFrame.containsKey(conversationID)){
 			ConversationFrame conversationFrame = this.conversationNameToConversationFrame.get(conversationID);
 			
@@ -325,9 +328,10 @@ public class Client implements Runnable{
 		ConversationTab conversationTab = this.mainFrame.getConversationTab();
 		conversationTab.removeUserNode(conversationID, userID);
 		
-		//Update the conversation gui.
-		//If the conversation window is open (this client is currently in the conversation),
-		//remove the 'userID' from this window's user table.
+		/*
+		 * Update the conversation gui if the conversation window is open (this client is
+		 * currently in the conversation).
+		 */
 		if(this.conversationNameToConversationFrame.containsKey(conversationID)){
 			this.conversationNameToConversationFrame.get(conversationID).removeUser(userID);
 		}
@@ -348,9 +352,12 @@ public class Client implements Runnable{
 	}
 	
 	private void handleLogOn(String userID){
-		this.myUsername = userID;
+		this.mainFrame = new MainFrame(this);
 		this.mainFrame.getConversationTab().setUsername(userID);
+		
+		this.myUsername = userID;
 		this.myUser = new User(userID);
+		
 		this.userNameToUser = new HashMap<String, User>();
 		this.conversationNameToConversation = new HashMap<String, Conversation>();
 		this.conversationNameToConversationFrame = new HashMap<String, ConversationFrame>();
@@ -358,7 +365,7 @@ public class Client implements Runnable{
 		
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
-				loginFrame.setVisible(false);
+				loginFrame.dispose();
 				mainFrame.setVisible(true);
 			}
 		});
@@ -371,17 +378,23 @@ public class Client implements Runnable{
 	
 	private void handleLogOff(){
 		try {
-			this.mySocket.close();
+			//Close the main window and all conversation windows. Open the login window.
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
 					mainFrame.dispose();
+					
+					//Close all conversation windows.
+					Iterator<String> it = conversationNameToConversationFrame.keySet().iterator();
+					while(it.hasNext()){
+						String nextConversationID = it.next();
+						conversationNameToConversationFrame.get(nextConversationID).dispose();
+					}
+					
 					loginFrame.setVisible(true);
-					
-					//TODO: close all windows, remove from all conversations.
-					//currently everytime we close the mainframe, all data is saved.
-					
 				}
 			});
+			
+			this.mySocket.close();
 		} 
 		
 		catch (IOException e) {
@@ -399,7 +412,7 @@ public class Client implements Runnable{
 		
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
-				createConversationFrame.setVisible(false);
+				createConversationFrame.dispose();
 			}
 		});
 	}
@@ -480,6 +493,8 @@ public class Client implements Runnable{
 	}
 	
 	public void openCreateConversationWindow(){
+		this.createConversationFrame = new CreateConversationFrame(this);
+		
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
 				createConversationFrame.setVisible(true);
@@ -504,13 +519,8 @@ public class Client implements Runnable{
 		return this.conversationNameToConversation.get(conversationID);
 	}
 	
-	public void run(){
-		//TODO: implement
-	}
-	
 	public static void main(String[] args){
-		System.out.print("Running client...\n");
-		Client client = new Client();
+		new Client();
 	}
 	
 }

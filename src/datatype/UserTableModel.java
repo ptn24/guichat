@@ -1,5 +1,6 @@
 package datatype;
 
+import java.util.Iterator;
 import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
@@ -34,6 +35,14 @@ public class UserTableModel extends AbstractTableModel{
 	 */
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
+		/*
+		Iterator<String> it = this.data.iterator();
+		String value = null;
+		for(int i = 0; i < rowIndex + 1; i++){
+			value = it.next();
+		}
+		return value;
+		*/
 		return this.data.toArray()[rowIndex];
 	}
 	

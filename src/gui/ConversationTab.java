@@ -52,7 +52,6 @@ public class ConversationTab extends JPanel implements MouseListener{
 		this.conversationTree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		
-				
 		//Set up the scroll pane.
 		this.scrollPane = new JScrollPane(this.conversationTree);
 		this.scrollPane.setPreferredSize(new Dimension(460, 420));
@@ -214,7 +213,12 @@ public class ConversationTab extends JPanel implements MouseListener{
 		 */
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+			//TODO: CHANGE
+			//TODO: if the client is in the conversation, make the conversation window the
+			//focus. else request to enter the chat.
 			client.requestEnterChat(this.conversationID);
+			
+			//TODO: add exit chat functionality...
 		}
 		
 	}
