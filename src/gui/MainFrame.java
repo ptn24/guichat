@@ -42,7 +42,7 @@ public class MainFrame extends JFrame implements ActionListener{
 		this.mainTabbedPane = new JTabbedPane();
 		this.userTab = new UserTab();
 		this.conversationTab = new ConversationTab(this.client);
-		this.inviteTab = new InviteTab();
+		this.inviteTab = new InviteTab(this.client);
 		
 		this.mainTabbedPane.addTab("Users", this.userTab);
 		this.mainTabbedPane.addTab("Chats", this.conversationTab);
@@ -105,6 +105,10 @@ public class MainFrame extends JFrame implements ActionListener{
 	
 	public ConversationTab getConversationTab(){
 		return this.conversationTab;
+	}
+	
+	public InviteTab getInviteTab(){
+		return this.inviteTab;
 	}
 
 	@Override

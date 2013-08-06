@@ -15,29 +15,24 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import client.Client;
 
-public class CreateConversationFrame extends JFrame implements ActionListener{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class InviteFrame extends JFrame implements ActionListener{
 	private final Client client;
 	private final GroupLayout layout;
 	private final JPanel topPanel;
 	private final JLabel topLabel;
 	private final JTextField userEntryTextField;
 	private final ErrorPanel errorPanel;
-	private final JButton cancelButton, createButton;
+	private final JButton cancelButton, inviteButton;
 	
-	public CreateConversationFrame(Client client){
-		this.client = client;
+	public InviteFrame(Client client){
+this.client = client;
 		
 		//Instantiate the top label.
-		this.topLabel = new JLabel("Please enter the name of your chat:");
+		this.topLabel = new JLabel("Please enter the name of the user you wish to invite:");
 		
 		//Instantiate the top panel.
 		this.topPanel = new JPanel();
@@ -55,8 +50,8 @@ public class CreateConversationFrame extends JFrame implements ActionListener{
 		//Instantiate the buttons.
 		this.cancelButton = new JButton("Cancel");
 		this.cancelButton.addActionListener(this);
-		this.createButton = new JButton("Create");
-		this.createButton.addActionListener(this);
+		this.inviteButton = new JButton("Create");
+		this.inviteButton.addActionListener(this);
 		
 		//An invisible gap in the frame.
 		Component verticalGap = Box.createRigidArea(new Dimension(25, 0));
@@ -74,7 +69,7 @@ public class CreateConversationFrame extends JFrame implements ActionListener{
 						.addComponent(verticalGap)
 						.addComponent(this.userEntryTextField)
 						.addComponent(verticalGap)
-						.addComponent(this.createButton)
+						.addComponent(this.inviteButton)
 				)
 				.addComponent(this.errorPanel)
 		);
@@ -90,7 +85,7 @@ public class CreateConversationFrame extends JFrame implements ActionListener{
 				.addComponent(this.errorPanel)
 				.addGroup(this.layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(this.cancelButton)
-						.addComponent(this.createButton)
+						.addComponent(this.inviteButton)
 				)
 		);
 		
@@ -116,44 +111,6 @@ public class CreateConversationFrame extends JFrame implements ActionListener{
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
 		
-		if(arg0.getActionCommand().equals("Cancel")){
-			this.userEntryTextField.setText("");
-			this.errorPanel.clearErrorLabel();
-			this.dispose();
-		}
-		
-		else{
-			String entry = this.userEntryTextField.getText();
-			this.userEntryTextField.setText("");
-			this.check(entry);
-		}
-		
-	}
-	
-	/**
-	 * 
-	 * @param entry The proposed conversation name for the new conversation.
-	 */
-	private void check(String entry){
-		
-		if(!entry.matches("\\p{Alnum}+")){
-			this.userEntryTextField.setText(entry);
-			this.userEntryTextField.selectAll();
-			this.userEntryTextField.requestFocus();
-			this.errorPanel.setErrorLabel("Please enter a valid conversation name");
-		}
-		
-		else{
-			this.errorPanel.clearErrorLabel();
-			this.client.requestStartChat(entry);
-		}
-	}
-	
-	public ErrorPanel getErrorPanel(){
-		return this.errorPanel;
-	}
-	
-	public JTextField getUserEntryTextField(){
-		return this.userEntryTextField;
+		System.out.print("received action \n");
 	}
 }

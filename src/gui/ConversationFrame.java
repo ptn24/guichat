@@ -3,6 +3,7 @@ package gui;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import javax.swing.AbstractAction;
@@ -10,6 +11,7 @@ import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -17,6 +19,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
@@ -29,7 +32,8 @@ import client.Client;
 import datatype.MyUserTable;
 import datatype.UserTableModel;
 
-public class ConversationFrame extends JFrame implements MyUserTable, WindowListener{
+public class ConversationFrame extends JFrame 
+								implements MyUserTable, WindowListener, ActionListener{
 	/**
 	 * 
 	 */
@@ -45,6 +49,8 @@ public class ConversationFrame extends JFrame implements MyUserTable, WindowList
 	private final JScrollPane conversationScrollPane, messageScrollPane, userScrollPane;
 	private final JTable userTable;
 	private final JButton inviteFriendButton;
+	
+	private InviteFrame inviteFrame;
 	
 	private final String newline = "\n";
 		
@@ -107,6 +113,7 @@ public class ConversationFrame extends JFrame implements MyUserTable, WindowList
 				
 		//Instantiate the button.
 		this.inviteFriendButton = new JButton("Invite Friend");
+		this.inviteFriendButton.addActionListener(this);
 		
 		//Initialize the layout.
 		Container cp = this.getContentPane();
@@ -294,6 +301,24 @@ public class ConversationFrame extends JFrame implements MyUserTable, WindowList
 	@Override
 	public void windowOpened(WindowEvent arg0) {
 		
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent ae) {
+		// TODO Auto-generated method stub
+		
+		if(ae.getActionCommand().equals("Invite Friend")){
+			//JOptionPane.showMessageDialog(null, "HA-HA!");
+			
+			//TODO: implement the actions.
+			this.inviteFrame = new InviteFrame(this.client);
+			
+			SwingUtilities.invokeLater(new Runnable(){
+				public void run(){
+					inviteFrame.setVisible(true);
+				}
+			});
+		}
 	}
 }
 

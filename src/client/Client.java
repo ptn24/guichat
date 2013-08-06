@@ -15,12 +15,14 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 
 import datatype.Conversation;
+import datatype.Invite;
 import datatype.ServerResponse;
 import datatype.User;
 
 import gui.ConversationFrame;
 import gui.ConversationTab;
 import gui.CreateConversationFrame;
+import gui.InviteTab;
 import gui.LoginFrame;
 import gui.MainFrame;
 import gui.UserTab;
@@ -43,7 +45,7 @@ public class Client {
 	private HashMap<String, User> userNameToUser;
 	private HashMap<String, Conversation> conversationNameToConversation;
 	private HashMap<String, ConversationFrame> conversationNameToConversationFrame;
-	private HashSet<String> myInvites;
+	private HashSet<Invite> myInvites;
 	
 	public Client(){		
 		this.loginFrame = new LoginFrame(this);
@@ -346,9 +348,12 @@ public class Client {
 	}
 	
 	private void handleReceivedInvite(String conversationID){
-		this.myInvites.add(conversationID);
+		Invite invite = new Invite(conversationID, null);
+		this.myInvites.add(invite);
 		
-		//TODO: update gui.
+		//Update the invite tab of the main gui.
+		InviteTab inviteTab = this.mainFrame.getInviteTab();
+		inviteTab.addInvite(invite);
 	}
 	
 	private void handleLogOn(String userID){
@@ -361,7 +366,7 @@ public class Client {
 		this.userNameToUser = new HashMap<String, User>();
 		this.conversationNameToConversation = new HashMap<String, Conversation>();
 		this.conversationNameToConversationFrame = new HashMap<String, ConversationFrame>();
-		this.myInvites = new HashSet<String>();
+		this.myInvites = new HashSet<Invite>();
 		
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
@@ -492,6 +497,10 @@ public class Client {
 		this.myOut.println("SEND_MESSAGE CONVERSATION_ID " + conversationID + " _TEXT_ " + text);
 	}
 	
+	public void requestSendInvite(String conversationID, String userID){
+		this.myOut.println("SEND_INVITE CONVERSATION_ID " + conversationID + " USER_ID " + userID);
+	}
+	
 	public void openCreateConversationWindow(){
 		this.createConversationFrame = new CreateConversationFrame(this);
 		
@@ -500,6 +509,10 @@ public class Client {
 				createConversationFrame.setVisible(true);
 			}
 		});
+	}
+	
+	public void removeInvite(Invite invite){
+		this.myInvites.remove(invite);
 	}
 	
 	/**

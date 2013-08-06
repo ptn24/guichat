@@ -43,7 +43,7 @@ public class UserTableModel extends AbstractTableModel{
 		}
 		return value;
 		*/
-		return this.data.toArray()[rowIndex];
+		return (this.data == null) ? null : this.data.toArray()[rowIndex];
 	}
 	
 	/**
