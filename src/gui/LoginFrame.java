@@ -12,10 +12,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import client.Client;
-import client.LoginListener;
-import client.PortListener;
-import client.ServerIPListener;
-import client.UsernameListener;
+import datatype.LoginListener;
+import datatype.PortListener;
+import datatype.ServerIPListener;
+import datatype.UsernameListener;
 
 public class LoginFrame extends JFrame{
 	/**

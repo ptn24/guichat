@@ -49,8 +49,6 @@ public class Client {
 	
 	public Client(){		
 		this.loginFrame = new LoginFrame(this);
-		//this.mainFrame = new MainFrame(this);
-		//this.createConversationFrame = new CreateConversationFrame(this);
 		
 		//Display the login window.
 		SwingUtilities.invokeLater(new Runnable(){
@@ -69,6 +67,8 @@ public class Client {
 	 */
 	public int login(String ip, int port, String username){
 		try {
+			//TODO: implement logging into system on a different server (change ip).
+			
 			this.mySocket = new Socket(InetAddress.getByName(ip), port);
 			this.myOut = new PrintWriter(this.mySocket.getOutputStream(), true);
 			this.myOut.println("LOG_ON USER_ID " + username);
@@ -530,6 +530,27 @@ public class Client {
 	 */
 	public Conversation getConversation(String conversationID){
 		return this.conversationNameToConversation.get(conversationID);
+	}
+	
+	/**
+	 * 
+	 * @param userID
+	 * @return whether or not a client with the username 'userID' is in the system.
+	 */
+	public boolean isUserLoggedOn(String userID){
+		return this.userNameToUser.keySet().contains(userID);
+	}
+	
+	/**
+	 * 
+	 * @param conversationID
+	 * @param userID
+	 * @return whether or not a client with the username 'userID' is in the chat 
+	 * 		'conversationID'.
+	 */
+	public boolean isUserInChat(String conversationID, String userID){
+		Conversation conversation = this.conversationNameToConversation.get(conversationID);
+		return conversation.contains(userID);
 	}
 	
 	public static void main(String[] args){

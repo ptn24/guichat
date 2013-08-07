@@ -1,12 +1,8 @@
 package gui;
 
-import java.util.TreeSet;
-
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
-
 import datatype.UserTableModel;
 
 public class UserTab extends JPanel{

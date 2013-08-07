@@ -36,6 +36,7 @@ public class Server{
 		}
 		
 	    this.serverSocket = new ServerSocket(port);
+	    
 	    this.userIDToUser = Collections.synchronizedMap(new HashMap<String, User>());
 	    this.socketToUser = Collections.synchronizedMap(new HashMap<Socket, User>());
 	    this.conversationIDToConversation = Collections.synchronizedMap(new HashMap<String, Conversation>());	    

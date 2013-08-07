@@ -20,7 +20,12 @@ import javax.swing.WindowConstants;
 import client.Client;
 
 public class InviteFrame extends JFrame implements ActionListener{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final Client client;
+	private final String conversationID;
 	private final GroupLayout layout;
 	private final JPanel topPanel;
 	private final JLabel topLabel;
@@ -28,8 +33,9 @@ public class InviteFrame extends JFrame implements ActionListener{
 	private final ErrorPanel errorPanel;
 	private final JButton cancelButton, inviteButton;
 	
-	public InviteFrame(Client client){
-this.client = client;
+	public InviteFrame(Client client, String conversationID){
+		this.client = client;
+		this.conversationID = conversationID;
 		
 		//Instantiate the top label.
 		this.topLabel = new JLabel("Please enter the name of the user you wish to invite:");
@@ -50,7 +56,7 @@ this.client = client;
 		//Instantiate the buttons.
 		this.cancelButton = new JButton("Cancel");
 		this.cancelButton.addActionListener(this);
-		this.inviteButton = new JButton("Create");
+		this.inviteButton = new JButton("Invite");
 		this.inviteButton.addActionListener(this);
 		
 		//An invisible gap in the frame.
@@ -94,7 +100,7 @@ this.client = client;
     	this.layout.setAutoCreateContainerGaps(true);
     	
     	//Setup the window.
-    	setTitle("GUI CHAT - Create New Chat");
+    	setTitle("GUI CHAT - Invite Friend");
     	pack();
     	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     	
@@ -108,9 +114,49 @@ this.client = client;
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
+	public void actionPerformed(ActionEvent ae) {
 		// TODO Auto-generated method stub
 		
-		System.out.print("received action \n");
+		if(ae.getActionCommand().equals(this.inviteButton.getActionCommand()) ||
+				ae.getActionCommand().equals("userEntryTextField")){
+			String userID = this.userEntryTextField.getText();
+			this.userEntryTextField.setText("");
+			this.check(userID);
+		}
+				
+		else if(ae.getActionCommand().equals(this.cancelButton.getActionCommand())){
+			this.errorPanel.clearErrorLabel();
+			this.userEntryTextField.setText("");
+			this.dispose();
+		}
+		
+	}
+	
+	private void check(String entry){
+		if(!this.client.isUserLoggedOn(entry)){
+			this.errorPanel.setErrorLabel("This user does not exist.");
+			this.userEntryTextField.setText(entry);
+			this.userEntryTextField.selectAll();
+			this.userEntryTextField.requestFocus();
+		}
+		
+		else{
+			if(this.client.isUserInChat(this.conversationID, entry)){
+				this.errorPanel.setErrorLabel("This user is already in the conversation.");
+				this.userEntryTextField.setText(entry);
+				this.userEntryTextField.selectAll();
+				this.userEntryTextField.requestFocus();
+			}
+			
+			else{
+				this.errorPanel.clearErrorLabel();
+				this.dispose();
+				
+				//TODO: send to server.
+				//fix the conversation id for each new frame.
+				this.client.requestSendInvite(this.conversationID, entry);
+			}
+			
+		}
 	}
 }

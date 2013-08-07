@@ -11,7 +11,6 @@ import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -50,7 +49,7 @@ public class ConversationFrame extends JFrame
 	private final JTable userTable;
 	private final JButton inviteFriendButton;
 	
-	private InviteFrame inviteFrame;
+	private final InviteFrame inviteFrame;
 	
 	private final String newline = "\n";
 		
@@ -115,6 +114,9 @@ public class ConversationFrame extends JFrame
 		this.inviteFriendButton = new JButton("Invite Friend");
 		this.inviteFriendButton.addActionListener(this);
 		
+		//Instantiate the invite window.
+		this.inviteFrame = new InviteFrame(this.client, this.conversationID);
+		
 		//Initialize the layout.
 		Container cp = this.getContentPane();
 		this.layout = new GroupLayout(cp);
@@ -141,7 +143,7 @@ public class ConversationFrame extends JFrame
 		//Setup the window.
 		this.setTitle("GUI CHAT - " + conversationID);
 		this.pack();
-		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);		//WILL CHANGE!
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(this);
 	}
 	
@@ -307,12 +309,7 @@ public class ConversationFrame extends JFrame
 	public void actionPerformed(ActionEvent ae) {
 		// TODO Auto-generated method stub
 		
-		if(ae.getActionCommand().equals("Invite Friend")){
-			//JOptionPane.showMessageDialog(null, "HA-HA!");
-			
-			//TODO: implement the actions.
-			this.inviteFrame = new InviteFrame(this.client);
-			
+		if(ae.getActionCommand().equals("Invite Friend")){			
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
 					inviteFrame.setVisible(true);
