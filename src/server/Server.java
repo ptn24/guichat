@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import datatype.*;
@@ -35,8 +36,12 @@ public class Server{
 		    throw new IllegalArgumentException("Port number must be positive.");
 		}
 		
-	    this.serverSocket = new ServerSocket(port);
-	    
+		//TODO: try to bind to a specific IP.
+		//InetAddress locIP = InetAddress.getByName("108.185.53.162");
+		InetAddress locIP = InetAddress.getByName("192.168.2.17");
+	    //this.serverSocket = new ServerSocket(port);
+	    this.serverSocket = new ServerSocket(port, 0, locIP);
+		
 	    this.userIDToUser = Collections.synchronizedMap(new HashMap<String, User>());
 	    this.socketToUser = Collections.synchronizedMap(new HashMap<Socket, User>());
 	    this.conversationIDToConversation = Collections.synchronizedMap(new HashMap<String, Conversation>());	    
@@ -100,7 +105,7 @@ public class Server{
 						//Get the client request or block until a client request is put on the queue.
 						ClientRequest clientRequest = queue.take();
 						handleRequest(clientRequest);		
-					} 
+					}
 					
 					catch (InterruptedException e) {
 						e.printStackTrace();
@@ -127,6 +132,8 @@ public class Server{
         
         try{
         	for (String line = in.readLine(); line != null; line = in.readLine()) {
+        		System.out.print("server received: " + line + "\n");
+        		
         		Lexer lexer = new Lexer(line, socket);
         		ClientRequest clientRequest = lexer.lex();
         		this.queue.put(clientRequest);

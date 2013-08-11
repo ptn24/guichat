@@ -1,5 +1,6 @@
 package client;
 
+import java.applet.Applet;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,7 +33,12 @@ import gui.UserTab;
  * @author Peter
  *
  */
-public class Client {
+public class Client extends Applet{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private final LoginFrame loginFrame;
 	private MainFrame mainFrame;
 	private CreateConversationFrame createConversationFrame;
@@ -87,11 +93,11 @@ public class Client {
 				}
 			});
 			thread.start();
-			return 0;
+			return 1;
 		} 
 		
 		catch (UnknownHostException e) {
-			return -1;
+			return 0;
 		} 
 		
 		catch (IOException e) {
@@ -493,8 +499,21 @@ public class Client {
 	 * @param conversationID
 	 * @param text
 	 */
-	public void requestSendMessage(String conversationID, String text){
-		this.myOut.println("SEND_MESSAGE CONVERSATION_ID " + conversationID + " _TEXT_ " + text);
+	public void requestSendMessage(String conversationID, String text){		
+		char[] textArr = text.toCharArray();
+		StringBuilder sb = new StringBuilder();
+		
+		//Encrypt all newline characters with "_@_".
+		for(char c : textArr){
+			if(c != '\n'){
+				sb.append(c);
+			}
+			else{
+				sb.append("_@_");
+			}
+		}
+				
+		this.myOut.println("SEND_MESSAGE CONVERSATION_ID " + conversationID + " _TEXT_ " + sb.toString());
 	}
 	
 	public void requestSendInvite(String conversationID, String userID){

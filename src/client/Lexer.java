@@ -89,8 +89,10 @@ public class Lexer {
 			}
 			
 			else if(command.equals("SEND_MESSAGE")){
-				String[] remainderTokens = tokens[1].split(" _TEXT_ ");
-				String message = remainderTokens[1];
+				String[] remainderTokens = tokens[1].split(" _TEXT_ ", 2);
+				
+				//Decrypt all newlines from the server message.
+				String message = remainderTokens[1].replaceAll("_@_", "\n");
 				
 				String[] parsedRemainderTokens = remainderTokens[0].split(" ");
 				String conversationID = parsedRemainderTokens[1];

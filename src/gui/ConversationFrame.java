@@ -254,7 +254,7 @@ public class ConversationFrame extends JFrame
 			if(e.getModifiers() == 0){
 				String text = this.conversationFrame.getMyMessageTextArea().getText();
 				this.conversationFrame.getMyMessageTextArea().setText("");
-				
+								
 				//Submit the message to the server.
 				this.client.requestSendMessage(conversationID, text);
 			}

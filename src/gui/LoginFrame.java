@@ -34,7 +34,7 @@ public class LoginFrame extends JFrame{
 	
 	private LoginListener currentListener;
 	
-	private String userEnteredIP = "localhost";
+	private String userEnteredIP = "192.168.2.17";
 	private int userEnteredPort = 4444;
 	private String userEnteredUsername = "ptn24";
 	
@@ -262,8 +262,12 @@ public class LoginFrame extends JFrame{
 		this.userEntryTextField.setText(this.userEnteredUsername);
 		this.userEntryTextField.selectAll();
 		
-		if(serverResponse == -1){
-			this.errorPanel.setErrorLabel("Invalid IP and/or port number.");
+		if(serverResponse == 0){
+			this.errorPanel.setErrorLabel("Invalid IP address.");
+		}
+		
+		else if(serverResponse == -1){
+			this.errorPanel.setErrorLabel("Invalid port number.");
 		}
 	}
 	
